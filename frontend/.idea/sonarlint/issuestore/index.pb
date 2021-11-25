@@ -1,0 +1,19 @@
+
+E
+src/config/types.json,7/d/7d5b522fe2243192182501ceb6e7f506544b029c
+F
+src/config/common.json,1/9/196f54277bb41af5a887b9cf9096799c6bbb989d
+K
+src/config/development.json,f/7/f716edd6ebb0b66677855b68e1071d8472afda93
+9
+	README.md,8/e/8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d
+B
+src/KittyAvatar.js,6/c/6cec45e64b4988d0c9dad0a74b1d6a1a920ff018
+A
+src/KittyCards.js,7/2/72c9a6fc8cebe98006693694155e13ba28e3bcf6
+J
+src/substrate-lib/utils.js,8/2/823db54f4c682770e21e68b87a23d326c8d35f02
+U
+%src/substrate-lib/SubstrateContext.js,4/7/47259766859995dd5d9d70ee9188c1298367b2d3
+>
+src/Kitties.js,4/c/4c1968decc3436f165d77d1914703b8365e39c77
