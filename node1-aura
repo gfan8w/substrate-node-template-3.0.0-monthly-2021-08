@@ -1,0 +1,10 @@
+{
+  "jsonrpc":"2.0",
+  "id":1,
+  "method":"author_insertKey",
+  "params": [
+    "aura",
+    "when purse sunset decorate ethics rookie glow vibrant recycle aisle section harsh",
+    "0x5a45b2604b79f192122310a35fdc33f3b741f07f5a91a7e0dc1a934caff7ff78"
+  ]
+}

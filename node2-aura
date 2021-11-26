@@ -1,0 +1,10 @@
+{
+  "jsonrpc":"2.0",
+  "id":1,
+  "method":"author_insertKey",
+  "params": [
+    "aura",
+    "amazing apple unfold blind come laundry battle cash able tag senior fluid",
+    "0x1079604d0d563d79d25fb188b094da7f5ae91f27a3933579729ca1c66041bf64"
+  ]
+}

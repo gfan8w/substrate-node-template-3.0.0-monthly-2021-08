@@ -1,0 +1,10 @@
+{
+  "jsonrpc":"2.0",
+  "id":1,
+  "method":"author_insertKey",
+  "params": [
+    "gran",
+    "when purse sunset decorate ethics rookie glow vibrant recycle aisle section harsh",
+    "0x74ca75ff8cd4eabd6552bd34396b329eeb5c52802dcb27db481a19e41f4bb632"
+  ]
+}

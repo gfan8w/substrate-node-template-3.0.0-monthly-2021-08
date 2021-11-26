@@ -258,6 +258,41 @@ pub mod pallet {
 
 			Self::deposit_event(Event::KittySaleOut(who, kitty_id, Some(kitty_price)));
 			Ok(())
+
+
+			/*
+			这个才是正确的做法
+			// 判断是否是目标kitty的拥有者
+			ensure!(Some(who.clone()) != Owner::<T>::get(kitty_id), Error::<T>::AlreadyOwned);
+
+			// 检查kitty是否存在,并获取该kitty的owner
+			let owner = Owner::<T>::get(kitty_id).ok_or(Error::<T>::InvalidKittyIndex)?;
+
+			let kitty_price = KittyPrices::<T>::get(kitty_id).ok_or(Error::<T>::NotForSale)?;
+
+			// 转质押 + 扣款
+			// 对于购买者，先质押购买的和创建抵押的
+			T::Currency::reserve(&who, T::KittyReserve::get() + kitty_price).map_err(|_| Error::<T>::MoneyNotEnough)?;
+			// 释放卖出者质押的代币
+			T::Currency::unreserve(&owner, T::KittyReserve::get());
+
+			// 释放购买者需要支付用来质押的代币
+			T::Currency::unreserve(&who, kitty_price);
+			// 转账
+			T::Currency::transfer(&who, &owner, kitty_price, ExistenceRequirement::KeepAlive)?;
+
+			// 移除价格挂单
+			KittyPrices::<T>::remove(kitty_id);
+
+			// 转移Kitty
+			Owner::<T>::insert(kitty_id, Some(who.clone()));
+
+			Self::deposit_event(Event::KittySaleOut(who, kitty_id, Some(kitty_price)));
+
+			Ok(())*/
+
+			//refer: https://github.com/GreatMartial/substrate-advanced-course/blob/main/pallets/kitties/src/lib.rs
+
 		}
 
 
