@@ -59,6 +59,17 @@ git = 'https://github.com/paritytech/substrate.git'
 tag = 'monthly-2021-08'
 version = '4.0.0-dev'
 
+# 添加这个引用是为了演示如何在template模块中引用simplestore模块的一些功能
+[dependencies.pallet-simplestore]
+default-features = false
+path = '../simplestore'
+version = '3.0.0-monthly-2021-08'
+
+[dependencies.log]
+version = "0.4.14"
+default-features = false
+
+
 [features]
 default = ['std']
 runtime-benchmarks = ['frame-benchmarking']
@@ -67,5 +78,6 @@ std = [
     'frame-support/std',
     'frame-system/std',
     'frame-benchmarking/std',
+    'pallet-simplestore/std',
 ]
 try-runtime = ['frame-support/try-runtime']

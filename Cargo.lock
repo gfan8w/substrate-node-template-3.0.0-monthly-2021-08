@@ -4023,6 +4023,8 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "log",
+ "pallet-simplestore",
  "parity-scale-codec",
  "serde",
  "sp-core",

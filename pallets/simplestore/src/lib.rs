@@ -132,6 +132,15 @@ pub mod pallet {
 	}
 
 
+	impl<T:Config> Pallet<T> {
+		pub fn get_meta_data() -> MetaData<T::AccountId, T::Balance> {
+			let meta = self::MetaDataStore::<T>::get();
+			log::info!("simple storage has a meta info:{:?}",meta);
+			return meta;
+		}
+	}
+
+
 
 }
 

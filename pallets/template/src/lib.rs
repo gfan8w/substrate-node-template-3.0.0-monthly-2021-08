@@ -35,9 +35,9 @@ pub mod pallet {
 	use frame_support::{dispatch::DispatchResult, pallet_prelude::*};
 	use frame_system::pallet_prelude::*;
 
-	/// Configure the pallet by specifying the parameters and types on which it depends.
+	/// 添加对pallet-simplestore 模块的引用，参看:https://stackoverflow.com/questions/56902167/in-substrate-is-there-a-way-to-use-storage-and-functions-from-one-custom-module
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
+	pub trait Config: frame_system::Config + pallet_simplestore::Config {
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 	}
@@ -90,6 +90,16 @@ pub mod pallet {
 
 			// Update storage.
 			<Something<T>>::put(something);
+
+			// let meta = <pallet_simplestore::MetaDataStore<T>>::get();  // 这个是私有的，无法访问，所以通过meta_data这个公有方法访问
+
+			// let meta = <pallet_simplestore::Module<T>>::meta_data();  // 老版本这里用Module,新版本用 Pallet
+			let meta = <pallet_simplestore::Pallet<T>>::meta_data();
+			log::info!("I get meta from a call,I print it:{:?}",meta);
+
+			let meta2 = <pallet_simplestore::Pallet<T>>::get_meta_data();
+			log::info!("this is meta got from a method:{:?}",meta2);
+
 
 			// Emit an event.
 			Self::deposit_event(Event::SomethingStored(something, who));
