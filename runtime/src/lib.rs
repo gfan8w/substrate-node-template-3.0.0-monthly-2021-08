@@ -41,9 +41,15 @@ pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
 
 /// Import the template pallet.
+/// todo!(这里要把头引入进来，别忘记了)
+/// 引入模块：template（一个简单的保存i32值功能）
+/// 引入模块：poe（一个简单的存证系统）
+/// 引入模块：kitties（一个简单的花猫系统）
+/// 引入模块：simplestore（一个简单的存储，在创世块上初始化）
 pub use pallet_template;
 pub use pallet_poe;
 pub use pallet_kitties;
+pub use pallet_simplestore;
 /// An index to a block.
 pub type BlockNumber = u32;
 
@@ -273,6 +279,11 @@ impl pallet_template::Config for Runtime {
 	type Event = Event;
 }
 
+
+impl pallet_simplestore::Config for Runtime {
+	type Balance = Balance;
+}
+
 impl pallet_poe::Config for Runtime {
 	type Event = Event;
 	type MaxClaimLength = MaxClaimLength;
@@ -307,6 +318,7 @@ construct_runtime!(
 		TemplateModule: pallet_template::{Pallet, Call, Storage, Event<T>},
 		PoeModule: pallet_poe::{Pallet, Call, Storage, Event<T>},
 		KittiesModule: pallet_kitties::{Pallet, Call, Storage, Event<T>},
+		SimpleStorage: pallet_simplestore::{Pallet, Call, Storage},  // simpleStorage没有用到Event，这里去掉
 	}
 );
 
@@ -336,7 +348,8 @@ pub type Executive = frame_executive::Executive<
 	Runtime,
 	AllPallets,
 >;
-
+// 运行时更多的信息请参考：https://docs.substrate.io/v3/concepts/runtime/
+// 运行时 主要做哪些事情？
 impl_runtime_apis! {
 	impl sp_api::Core<Block> for Runtime {
 		fn version() -> RuntimeVersion {
