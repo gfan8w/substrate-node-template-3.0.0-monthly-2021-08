@@ -51,7 +51,7 @@ pub mod pallet {
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_initialize(_n: T::BlockNumber) -> Weight {
 
-			log::info!("on_initialize at block:{:?}",_n);
+			log::info!("on_initialize at block:{:?}",_n); //打印日志，除了log:info!, 还可以自己实现Printable接口，请参见template的pallet的Event实现
 
 			let mut meta = MetaDataStore::<T>::get();
 

@@ -34,8 +34,14 @@ mod benchmarking;
 pub mod pallet {
 	use frame_support::{dispatch::DispatchResult, pallet_prelude::*};
 	use frame_system::pallet_prelude::*;
+	use sp_runtime::traits::Printable; // 打印日志，自己实现Printable接口
+	use sp_runtime::print;     // 这个是给遗留代码使用的。 参看：https://docs.substrate.io/v3/runtime/debugging/
+	use sp_std::if_std;       //如果运行在std 环境下，就做一些事情，条件编译
 
-	/// 添加对pallet-simplestore 模块的引用，参看:https://stackoverflow.com/questions/56902167/in-substrate-is-there-a-way-to-use-storage-and-functions-from-one-custom-module
+
+	/// 添加对pallet-simplestore 模块的引用，
+	/// 参看：https://docs.substrate.io/v3/runtime/pallet-coupling/
+	/// 参看:https://stackoverflow.com/questions/56902167/in-substrate-is-there-a-way-to-use-storage-and-functions-from-one-custom-module
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_simplestore::Config {
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
@@ -74,6 +80,23 @@ pub mod pallet {
 		StorageOverflow,
 	}
 
+	///要看到日志，运行需要带上evn参数：RUST_LOG，具体command: RUST_LOG=runtime=debug ./target/release/node-template --dev
+	impl<T:Config> Printable for Error<T> {
+		fn print(&self) {
+			match self {
+				Error::NoneValue =>{
+					"NoneValue Invalid Value（不合法的值）".print();
+				},
+				Error::StorageOverflow =>{
+					"StorageOverflow 存储溢出异常".print();
+				},
+				_ => {
+					"未知异常".print();
+				}
+			}
+		}
+	}
+
 	// Dispatchable functions allows users to interact with the pallet and invoke state changes.
 	// These functions materialize as "extrinsics", which are often compared to transactions.
 	// Dispatchable functions must be annotated with a weight and must return a DispatchResult.
@@ -100,6 +123,12 @@ pub mod pallet {
 			let meta2 = <pallet_simplestore::Pallet<T>>::get_meta_data();
 			log::info!("this is meta got from a method:{:?}",meta2);
 
+			if_std!{
+				// This code is only being compiled and executed when the `std` feature is enabled.
+				println!("This code is only being compiled and executed when the `std` feature is enabled.");
+				println!("这个代码只有在std这个feature启用的时候，才会执行！！");
+				println!("the tranx caller is :{:#?}",who);
+			}
 
 			// Emit an event.
 			Self::deposit_event(Event::SomethingStored(something, who));
@@ -112,13 +141,26 @@ pub mod pallet {
 		pub fn cause_error(origin: OriginFor<T>) -> DispatchResult {
 			let _who = ensure_signed(origin)?;
 
+			log::info!("这里发生了错误，记录日志");
+
+			// 要看到日志，运行需要带上evn参数：RUST_LOG，具体command: RUST_LOG=runtime=debug ./target/release/node-template --dev
+			// RUST_LOG=runtime=debug cargo run  -- --dev --tmp
+			print("test `cause_error`!!!!"); //打印日志
+
 			// Read a value from storage.
 			match <Something<T>>::get() {
 				// Return an error if the value has not been set.
-				None => Err(Error::<T>::NoneValue)?,
+				None => {
+					Error::<T>::NoneValue.print(); //写法1
+					print(Error::<T>::NoneValue);  //写法2
+					Err(Error::<T>::NoneValue)?
+				},
 				Some(old) => {
 					// Increment the value read from storage; will error in the event of overflow.
-					let new = old.checked_add(1).ok_or(Error::<T>::StorageOverflow)?;
+					let new = old.checked_add(1).ok_or({
+						Error::<T>::StorageOverflow.print();   //打印日志
+						Error::<T>::StorageOverflow
+					})?;
 					// Update the value in storage with the incremented result.
 					<Something<T>>::put(new);
 					Ok(())
