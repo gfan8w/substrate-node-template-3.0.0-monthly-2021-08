@@ -8,6 +8,13 @@ mod tests;
 extern crate frame_support;
 extern crate frame_system;
 
+
+use codec::{Decode, Encode};
+use sp_runtime::{RuntimeDebug};
+use sp_std::vec::Vec;
+
+#[cfg(feature = "std")]
+use serde::{Deserializer, Deserialize, Serialize};
 /// hello kitty
 /// 运行效果： https://www.awesomescreenshot.com/video/4968603?key=f0b4d770c81f67d52a1d00174d55e9dc
 /// <https://substrate.dev/docs/en/knowledgebase/runtime/frame>
@@ -16,8 +23,93 @@ extern crate frame_system;
 pub use pallet::*;
 
 
+#[derive(Encode, Decode, Copy, Clone, PartialEq, Eq, RuntimeDebug)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+pub enum KittyStatus {
+	///正常
+	Active,
+	///饥饿
+	Hunger,
+	///挂单
+	Bid,
+	///死亡
+	Death,
+}
+
+#[derive(Encode, Decode, Clone, RuntimeDebug, PartialEq, Eq)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+pub struct ColorKitty<AccountId,BlockNumber, Balance> {
+	pub owner: AccountId,
+	pub birth: BlockNumber,
+	pub eat_count: BlockNumber,
+	pub status: KittyStatus,
+	pub children: Balance,
+	pub species:Balance,
+}
+
+#[derive(Encode, Decode, Clone, RuntimeDebug, PartialEq, Eq)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+pub struct WorldKitty<AccountId,BlockNumber, Balance> {
+	pub owner: AccountId,
+	pub start: BlockNumber,
+	pub pre_eat_at: BlockNumber,
+	pub eat_count: u32,
+	pub status: KittyStatus,
+	pub asset_id: u64,
+	pub class_id: u32,
+	pub grow_value: Balance,
+}
+
+#[derive(Encode, Decode, Clone, RuntimeDebug, PartialEq, Eq)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+pub struct AsiaKitty<AccountId,BlockNumber, Balance> {
+	pub owner: AccountId,
+	pub start: BlockNumber,
+	pub pre_eat_at: BlockNumber,
+	pub eat_count: u32,
+	pub eggs: Balance,
+	pub status: KittyStatus,
+	pub asset_id: u64,
+	pub class_id: u32,
+	pub incubation_remain: Balance,
+}
+
+
+#[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+pub enum Farm<AccountId, BlockNumber, Balance> {
+	Red(ColorKitty<AccountId, BlockNumber, Balance>),
+	World(WorldKitty<AccountId, BlockNumber, Balance>),
+	Asia(AsiaKitty<AccountId, BlockNumber, Balance>),
+}
+
+
+
+#[derive(Encode, Decode, Default, RuntimeDebug)]
+pub struct HackerNewsInfo {
+	// Specify our own deserializing function to convert JSON string to vector of bytes
+	//#[serde(deserialize_with = "de_string_to_bytes")]
+	by: Vec<u8>,
+	//#[serde(deserialize_with = "de_string_to_bytes")]
+	title: Vec<u8>,
+	//#[serde(deserialize_with = "de_string_to_bytes")]
+	url: Vec<u8>,
+	descendants: u32,
+}
+
+/*pub fn de_string_to_bytes<'de, D>(de: D) -> Result<Vec<u8>, D::Error>
+	where
+		D: Deserializer<'de>,
+{
+	let s: &str = Deserialize::deserialize(de)?;
+	Ok(s.as_bytes().to_vec())
+}*/
+
+
 #[frame_support::pallet]
 pub mod pallet {
+
+	use super::{Farm,ColorKitty};
 
 	use frame_support::{dispatch::DispatchResultWithPostInfo, pallet_prelude::*,
 						traits::Randomness,
@@ -29,7 +121,7 @@ pub mod pallet {
 	use codec::{Encode,Decode};
 	use sp_io::hashing::blake2_128;
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Bounded, One};
-
+	use sp_std::vec::Vec;
 	//use sp_std::prelude::*;
 
 	/*
@@ -39,6 +131,15 @@ pub mod pallet {
 	  "Kitty": "[u8;16]"
 	}
 	*/
+
+
+	pub type BlockNumberOf<T> = <T as frame_system::Config>::BlockNumber;
+	pub type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
+
+	pub type FarmOf<T> = Farm<AccountIdOf<T>, BlockNumberOf<T>, BalanceOf<T>>;
+
+	pub type ColorKittyOf<T> = ColorKitty<AccountIdOf<T>, BlockNumberOf<T>, BalanceOf<T>>;
+
 
 	#[derive(Encode,Decode)]
 	pub struct Kitty(pub [u8;16]);
@@ -98,6 +199,10 @@ pub mod pallet {
 	pub type Kitties<T: Config> = StorageMap<_, Blake2_128Concat, T::KittyIndex, Option<Kitty>, ValueQuery>;
 
 	#[pallet::storage]
+	#[pallet::getter(fn kitties_park)]
+	pub type KittiesPark<T: Config> = StorageMap<_, Blake2_128Concat, T::KittyIndex, Kitty, OptionQuery>;
+
+	#[pallet::storage]
 	#[pallet::getter(fn owner)]
 	pub type Owner<T: Config> = StorageMap<_, Blake2_128Concat, T::KittyIndex, Option<T::AccountId>, ValueQuery>;
 
@@ -105,6 +210,37 @@ pub mod pallet {
 	#[pallet::getter(fn kitty_prices)]
 	pub type KittyPrices<T: Config> =
 	StorageMap<_, Blake2_128Concat, T::KittyIndex, Option<BalanceOf<T>>, ValueQuery>;
+
+	///仓库
+	#[pallet::storage]
+	#[pallet::getter(fn query_kitty_farm)]
+	pub type ColorKittyFarm<T: Config> = StorageMap<
+		_,
+		Twox64Concat,
+		T::KittyIndex,
+		FarmOf<T>,
+		OptionQuery,
+	>;
+
+	///仓库
+	#[pallet::storage]
+	#[pallet::getter(fn query_kitty_farm_map)]
+	pub type ColorKittyFarmMap<T: Config> = StorageMap<
+		_,
+		Twox64Concat,
+		T::KittyIndex,
+		ColorKittyOf<T>,
+		OptionQuery,
+	>;
+
+
+	#[pallet::storage]
+	#[pallet::getter(fn hack_news)]
+	pub type HackerNews<T> = StorageValue<_, Vec<super::HackerNewsInfo>, ValueQuery>;
+
+
+
+
 
 	// Errors inform users that something went wrong.
 	#[pallet::error]
@@ -150,7 +286,78 @@ pub mod pallet {
 
 			KittiesCount::<T>::put(kitty_id+One::one());
 
-			Self::deposit_event(Event::KittyCreate(who,kitty_id));
+			Self::deposit_event(Event::KittyCreate(who.clone(),kitty_id));
+
+			let block = frame_system::Pallet::<T>::block_number();
+
+			KittiesPark::<T>::insert(kitty_id,Kitty(dna));
+
+			ColorKittyFarmMap::<T>::insert(kitty_id,ColorKittyOf::<T> {
+				owner: <T as frame_system::Config>::AccountId::default(),
+				birth: block,
+				eat_count: block,
+				status: super::KittyStatus::Active,
+				children: 3u32.into(),
+				species: 4u32.into()
+			});
+
+
+			ColorKittyFarm::<T>::insert(
+				kitty_id,
+				FarmOf::<T>::Red(super::ColorKitty {
+					owner: who.clone(),
+					birth: block,
+					eat_count: block,
+					status: super::KittyStatus::Active,
+					children: 3u32.into(),
+					species:4u32.into(),
+				}),
+			);
+			/*ColorKittyFarm::<T>::insert(
+				kitty_id+ T::KittyIndex::from(10u32),
+				FarmOf::<T>::World(super::WorldKitty {
+					owner: who.clone(),
+					start: block,
+					pre_eat_at: block,
+					eat_count: 2u32,
+					status: super::KittyStatus::Bid,
+					asset_id: 300u64,
+					class_id: 30u32,
+					grow_value: 3u32.into(),
+				}),
+			);*/
+			ColorKittyFarm::<T>::insert(
+				kitty_id+T::KittyIndex::from(20u32),
+				FarmOf::<T>::Asia(super::AsiaKitty {
+					owner: who.clone(),
+					start: block,
+					pre_eat_at: block,
+					eat_count: 5u32,
+					eggs: 3u32.into(),
+					status: super::KittyStatus::Active,
+					asset_id: 0,
+					class_id: 0,
+					incubation_remain: 12u32.into()
+				}),
+			);
+
+
+			let content= "{\"cfd\":\"上海\",\"czr\":\"系统管理员\",\"zhi\":\"京666\"}";
+			//let con = sp_std::str::from_str(content).unwrap();
+			let vc=content.as_bytes().to_vec();
+			let news= super::HackerNewsInfo {
+				by: "author".as_bytes().to_vec(),
+				title: content.as_bytes().to_vec(),
+				url: "http://www.baidu.com".as_bytes().to_vec(),
+				descendants: 0
+			};
+
+			HackerNews::<T>::mutate(|hn|{
+				hn.push(news)
+			});
+
+
+
 
 			Ok(())
 		}

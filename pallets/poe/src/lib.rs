@@ -20,6 +20,8 @@ extern crate frame_system;
 pub use pallet::*;
 
 
+
+
 #[frame_support::pallet]
 pub mod pallet {
 
@@ -50,9 +52,11 @@ pub mod pallet {
 	#[pallet::getter(fn proofs)]
 	pub type Proofs<T:Config> = StorageMap<_, Blake2_128Concat, Vec<u8>, (T::AccountId, T::BlockNumber)>;
 
-/*	#[pallet::storage]
-	#[pallet::getter(fn daattte)]
-	pub type Daaate<T:Config> = StorageValue<Vec<T::AccountId>>;*/
+
+
+	/*	#[pallet::storage]
+        #[pallet::getter(fn daattte)]
+        pub type Daaate<T:Config> = StorageValue<Vec<T::AccountId>>;*/
 
 	#[pallet::event]
 	#[pallet::metadata(T::AccountId = "AccountId")]

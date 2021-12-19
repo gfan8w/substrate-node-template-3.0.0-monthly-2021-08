@@ -19,7 +19,12 @@ an example - the crate root is each file in examples
 /// Edit this file to define custom logic or remove it if it is not needed.
 /// Learn more about FRAME and the core library of Substrate FRAME pallets:
 /// <https://substrate.dev/docs/en/knowledgebase/runtime/frame>
+///
+///
+
 pub use pallet::*;
+// 放外面行不行？为什么？
+//use sp_runtime::traits::AccountIdConversion;
 
 #[cfg(test)]
 mod mock;
@@ -32,12 +37,14 @@ mod benchmarking;
 
 #[frame_support::pallet]
 pub mod pallet {
+	use sp_runtime::traits::AccountIdConversion;
 	use frame_support::{dispatch::DispatchResult, pallet_prelude::*};
 	use frame_system::pallet_prelude::*;
 	use sp_runtime::traits::Printable; // 打印日志，自己实现Printable接口
 	use sp_runtime::print;     // 这个是给遗留代码使用的。 参看：https://docs.substrate.io/v3/runtime/debugging/
 	use sp_std::if_std;       //如果运行在std 环境下，就做一些事情，条件编译
 
+	use frame_support::PalletId;
 
 	/// 添加对pallet-simplestore 模块的引用，
 	/// 参看：https://docs.substrate.io/v3/runtime/pallet-coupling/
@@ -46,7 +53,10 @@ pub mod pallet {
 	pub trait Config: frame_system::Config + pallet_simplestore::Config {
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+
+		type CommissionStorage: Get<PalletId>;
 	}
+
 
 	#[pallet::pallet]
 	#[pallet::generate_store(pub(super) trait Store)]
@@ -111,6 +121,8 @@ pub mod pallet {
 			// https://substrate.dev/docs/en/knowledgebase/runtime/origin
 			let who = ensure_signed(origin)?;
 
+			let ca : T::AccountId=T::CommissionStorage::get().into_account();
+
 			// Update storage.
 			<Something<T>>::put(something);
 
@@ -118,7 +130,7 @@ pub mod pallet {
 
 			// let meta = <pallet_simplestore::Module<T>>::meta_data();  // 老版本这里用Module,新版本用 Pallet
 			let meta = <pallet_simplestore::Pallet<T>>::meta_data();
-			log::info!("I get meta from a call,I print it:{:?}",meta);
+			log::info!("I get meta from a call,I print it:{:?}, ca:{:?},",meta,ca);
 
 			let meta2 = <pallet_simplestore::Pallet<T>>::get_meta_data();
 			log::info!("this is meta got from a method:{:?}",meta2);

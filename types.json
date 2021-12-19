@@ -1,0 +1,58 @@
+{
+    "KittyIndex": "u32",
+    "Kitty": "[u8;16]",
+    "KittyStatus": {
+        "_enum": ["Active","Hunger","Bid","Death"]
+    },
+    "ColorKitty": {
+        "owner": "AccountId",
+        "birth": "BlockNumber",
+        "eat_count": "BlockNumber",
+        "status": "KittyStatus",
+        "children": "Balance",
+        "species": "Balance"
+    },
+    "FarmOf": {
+        "_enum": {
+            "Red": "ColorKitty",
+            "World": "WorldKitty",
+            "Asia": "AsiaKitty"
+        }
+    },
+    "ColorKittyOf": {
+        "owner": "AccountId",
+        "birth": "BlockNumber",
+        "eat_count": "BlockNumber",
+        "status": "KittyStatus",
+        "children": "Balance",
+        "species":"Balance"
+    },
+    "WorldKitty": {
+        "owner": "AccountId",
+        "start": "BlockNumber",
+        "pre_eat_at": "BlockNumber",
+        "eat_count": "u32",
+        "status": "KittyStatus",
+        "asset_id": "u64",
+        "class_id": "u32",
+        "grow_value": "Balance"
+    },
+    "AsiaKitty": {
+        "owner": "AccountId",
+        "start": "BlockNumber",
+        "pre_eat_at": "BlockNumber",
+        "eat_count": "u32",
+        "eggs": "Balance",
+        "status": "KittyStatus",
+        "asset_id": "u64",
+        "class_id": "u32",
+        "incubation_remain": "Balance"
+    },
+    "HackerNewsInfo": {
+        "by": "Vec<u8>",
+        "title": "Text",
+        "url": "Vec<u8>",
+        "descendants": "u32"
+    }
+}
+
