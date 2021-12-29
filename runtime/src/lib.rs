@@ -28,19 +28,21 @@ use frame_support::PalletId;
 // A few exports that help ease life for downstream crates.
 pub use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{KeyOwnerProofSystem, Randomness, StorageInfo},
+	traits::{KeyOwnerProofSystem, Randomness, StorageInfo,Currency},
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
 		IdentityFee, Weight,
 	},
 	StorageValue,
 };
+use frame_support::traits::OnUnbalanced;
 pub use pallet_balances::Call as BalancesCall;
 pub use pallet_timestamp::Call as TimestampCall;
 use pallet_transaction_payment::CurrencyAdapter;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
+use frame_system::EnsureRoot;
 
 /// Import the template pallet.
 /// todo!(这里要把头引入进来，别忘记了)
@@ -264,8 +266,29 @@ parameter_types! {
 	pub const TransactionByteFee: Balance = 1;
 }
 
+
+type NegativeImbalance =
+<Balances as Currency<<Runtime as frame_system::Config>::AccountId>>::NegativeImbalance;
+
+pub struct DealWithFees;
+impl OnUnbalanced<NegativeImbalance> for DealWithFees {
+	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance>) {
+		if let Some(fees) = fees_then_tips.next() {
+			// for fees, 80% to treasury, 20% to author
+			// let mut split = fees.ration(80, 20);
+			// if let Some(tips) = fees_then_tips.next() {
+			// 	// for tips, if any, 80% to treasury, 20% to author (though this can be anything)
+			// 	tips.ration_merge_into(80, 20, &mut split);
+			// }
+			//Treasury::on_unbalanced(fees);
+			log::info!("lint-transfer fees:{:?}",fees);
+
+		}
+	}
+}
+
 impl pallet_transaction_payment::Config for Runtime {
-	type OnChargeTransaction = CurrencyAdapter<Balances, ()>;
+	type OnChargeTransaction = CurrencyAdapter<Balances, DealWithFees>;
 	type TransactionByteFee = TransactionByteFee;
 	type WeightToFee = IdentityFee<Balance>;
 	type FeeMultiplierUpdate = ();
@@ -275,6 +298,23 @@ impl pallet_sudo::Config for Runtime {
 	type Event = Event;
 	type Call = Call;
 }
+
+parameter_types! {
+    pub const MaxWellKnownNodes: u32 = 8;
+    pub const MaxPeerIdLength: u32 = 128;
+}
+
+impl pallet_node_authorization::Config for Runtime {
+	type Event = Event;
+	type MaxWellKnownNodes = MaxWellKnownNodes;
+	type MaxPeerIdLength = MaxPeerIdLength;
+	type AddOrigin = EnsureRoot<AccountId>;
+	type RemoveOrigin = EnsureRoot<AccountId>;
+	type SwapOrigin = EnsureRoot<AccountId>;
+	type ResetOrigin = EnsureRoot<AccountId>;
+	type WeightInfo = ();
+}
+
 
 parameter_types! {
 	pub const CommissionStorage: PalletId = PalletId(*b"ccm/cosm");
@@ -326,6 +366,7 @@ construct_runtime!(
 		PoeModule: pallet_poe::{Pallet, Call, Storage, Event<T>},
 		KittiesModule: pallet_kitties::{Pallet, Call, Storage, Event<T>},
 		SimpleStorage: pallet_simplestore::{Pallet, Call, Storage},  // simpleStorage没有用到Event，这里去掉
+		NodeAuthorization: pallet_node_authorization::{Pallet, Call, Storage, Config<T>, Event<T>},
 	}
 );
 

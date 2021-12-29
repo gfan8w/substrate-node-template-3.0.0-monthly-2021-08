@@ -17,6 +17,8 @@ pub mod pallet {
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Bounded, One,Zero,Saturating, CheckedAdd, CheckedSub};
 	use  frame_support::weights::Weight;
 	//use frame_support::scale_info::{Type, TypeInfo};  //这个版本还不支持TypeInfo，2021-10才支持
+	use sp_std::fmt;
+
 
 	#[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, Default)]
 	pub struct MetaData<AccountId, Balance> {
@@ -136,6 +138,7 @@ pub mod pallet {
 		pub fn get_meta_data() -> MetaData<T::AccountId, T::Balance> {
 			let meta = self::MetaDataStore::<T>::get();
 			log::info!("simple storage has a meta info:{:?}",meta);
+			// sp_std::fmt::format("Hello,{}","world");   //不知道为什么，这句话报错
 			return meta;
 		}
 	}

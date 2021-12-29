@@ -119,9 +119,12 @@ pub mod pallet {
 	};
 	use frame_system::pallet_prelude::*;
 	use codec::{Encode,Decode};
+	use sp_core::U256;
 	use sp_io::hashing::blake2_128;
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Bounded, One};
 	use sp_std::vec::Vec;
+	use sp_std::convert::{TryFrom, TryInto};
+	use sp_runtime::SaturatedConversion;
 	//use sp_std::prelude::*;
 
 	/*
@@ -165,6 +168,9 @@ pub mod pallet {
 
 		// Currency 类型，用于质押等于资产相关的操作
 		type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
+
+
+
 	}
 
 	#[pallet::pallet]
@@ -357,7 +363,10 @@ pub mod pallet {
 			});
 
 
-
+			let balance = Self::trans_into_balance(43);
+			let money= Self::trans_from_balance(<BalanceOf<T>>::max_value());
+			let u64_max =u64::MAX;
+			log::info!("money is :{:?}, max of u64 is :{:?}", money, u64_max);
 
 			Ok(())
 		}
@@ -543,5 +552,26 @@ pub mod pallet {
 			}
 			Ok(kitty_id)
 		}
+
+		/// u32,u64等rust基本类型与SubStrate系统内的一些基本类型的数据转换。
+		/// SaturatedConversion 就是用来干这个的。
+		/// sp_runtime::SaturatedConversion 是对  sp_arithmetic::traits::SaturatedConversion 的重新导出
+		fn trans_into_balance(money: u64) -> BalanceOf<T> {
+			// u8,u32,u64 与 T::Balance的转换
+			let result_balance: BalanceOf<T> = money.saturated_into::<BalanceOf<T>>();
+			log::info!("result_balance:{:?}", result_balance);
+			result_balance
+		}
+
+		/// u32,u64等rust基本类型与SubStrate系统内的一些基本类型的数据转换。
+		/// SaturatedConversion 就是用来干这个的。
+		/// sp_runtime::SaturatedConversion 是对  sp_arithmetic::traits::SaturatedConversion 的重新导出
+		fn trans_from_balance(balance: BalanceOf<T>) -> u64 {
+			// u8,u32,u64 与 T::Balance的转换
+			let result_u64: u64 = balance.saturated_into::<u64>();
+			log::info!("result_u64:{:?}", result_u64);
+			result_u64
+		}
+
 	}
 }

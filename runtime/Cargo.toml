@@ -27,6 +27,12 @@ default-features = false
 path = '../pallets/poe'
 version = '3.0.0-monthly-2021-08'
 
+[dependencies.pallet-node-authorization]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+tag = 'monthly-2021-08'
+version = '4.0.0-dev'
+
 [dependencies.pallet-kitties]
 default-features = false
 path = '../pallets/kitties'
@@ -199,6 +205,10 @@ git = 'https://github.com/paritytech/substrate.git'
 tag = 'monthly-2021-08'
 version = '4.0.0-dev'
 
+[dependencies.log]
+version = "0.4.14"
+default-features = false
+
 [features]
 default = ['std']
 runtime-benchmarks = [
@@ -241,4 +251,5 @@ std = [
     'sp-std/std',
     'sp-transaction-pool/std',
     'sp-version/std',
+    'pallet-node-authorization/std',
 ]

@@ -135,6 +135,11 @@ pub mod pallet {
 			let meta2 = <pallet_simplestore::Pallet<T>>::get_meta_data();
 			log::info!("this is meta got from a method:{:?}",meta2);
 
+			//wasm 日志 不行 会报错？
+			//frame_support::debug::RuntimeLogger::init();
+			//frame_support::debug::debug!("wasm log - called by {:?}，this is meta got from a method:{:?}", who,meta2);
+
+
 			if_std!{
 				// This code is only being compiled and executed when the `std` feature is enabled.
 				println!("This code is only being compiled and executed when the `std` feature is enabled.");
@@ -156,8 +161,8 @@ pub mod pallet {
 			log::info!("这里发生了错误，记录日志");
 
 			// 要看到日志，运行需要带上evn参数：RUST_LOG，具体command: RUST_LOG=runtime=debug ./target/release/node-template --dev
-			// RUST_LOG=runtime=debug cargo run  -- --dev --tmp
-			print("test `cause_error`!!!!"); //打印日志
+			// RUST_LOG=runtime=debug cargo run  -- --dev --tmp -lruntime=debug
+			print("test `cause_error`!!!!"); //打印日志  -lruntime=debug 能打印更多日志
 
 			// Read a value from storage.
 			match <Something<T>>::get() {

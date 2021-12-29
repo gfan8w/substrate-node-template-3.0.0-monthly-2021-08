@@ -3631,6 +3631,7 @@ dependencies = [
 name = "node-template"
 version = "3.0.0-monthly-2021-08"
 dependencies = [
+ "bs58",
  "frame-benchmarking",
  "frame-benchmarking-cli",
  "jsonrpc-core",
@@ -3676,10 +3677,12 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "hex-literal",
+ "log",
  "pallet-aura",
  "pallet-balances",
  "pallet-grandpa",
  "pallet-kitties",
+ "pallet-node-authorization",
  "pallet-poe",
  "pallet-randomness-collective-flip",
  "pallet-simplestore",
@@ -3928,10 +3931,26 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "log",
  "pallet-balances",
  "pallet-randomness-collective-flip",
  "parity-scale-codec",
  "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-node-authorization"
+version = "4.0.0-dev"
+source = "git+https://github.com/paritytech/substrate.git?tag=monthly-2021-08#4d28ebeb8b027ca0227fe7779c5beb70a7b56467"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
  "sp-core",
  "sp-io",
  "sp-runtime",
