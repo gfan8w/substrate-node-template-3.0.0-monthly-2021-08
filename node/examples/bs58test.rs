@@ -4,18 +4,25 @@ use bs58;
 
 pub fn main() {
 
-    let alice_peer_id ="12D3KooWFzXtYJhUkMsWTXQodYaXhs6ah52xVExicuFPvmUQoZrE";
-    let alice_peerid_hex=alice_peer_id.as_bytes().to_vec();
-    println!("{}",alice_peerid_hex.iter().map(|x|format!("{:02x?}",x)).collect::<Vec<_>>().join(""));
+    //
+
+    //let alice_peer_id ="12D3KooWFsLQAmNCpxgeeXY9mH9DgqgchutwmSL2wqeaAhhbG1R4";
+    //let alice_peerid_hex=alice_peer_id.as_bytes().to_vec();
+    //println!("{}",alice_peerid_hex.iter().map(|x|format!("{:02x?}",x)).collect::<Vec<_>>().join(""));
 
 
+    //let alice_peer_id ="12D3KooWFzXtYJhUkMsWTXQodYaXhs6ah52xVExicuFPvmUQoZrE";
+    //let alice_peerid_hex=alice_peer_id.as_bytes().to_vec();
+    //println!("{}",alice_peerid_hex.iter().map(|x|format!("{:02x?}",x)).collect::<Vec<_>>().join(""));
 
-    let charlie = decode("12D3KooWJvyP3VJYymTqG7eH4PM5rN4T2agk5cdNCfNymAqwqcvZ");
-    println!("charlie's:{}",charlie);
-    let alice = decode("12D3KooWFzXtYJhUkMsWTXQodYaXhs6ah52xVExicuFPvmUQoZrE");
-    println!("alice's:{}",alice);
-    let bob = decode("12D3KooWFqHLgcSSB6dgAZ3SeCFYR4Dpr5w8TEhTdq8JKDxTUvGH");
-    println!("bob's:{}",bob);
+    let hx = hex_literal::hex!("8a1ed431fa78b83f195e228c47777cc4661916fd8b1571ac4e9801ae56560952").to_vec().into();
+
+     let charlie = decode("5FBod7BC86ahPWt6U1sxqEozt1MF8m48soYEJkvWTLkAQBje");
+     println!("charlie's:{}",charlie);
+    // let alice = decode("12D3KooWFzXtYJhUkMsWTXQodYaXhs6ah52xVExicuFPvmUQoZrE");
+    // println!("alice's:{}",alice);
+    // let bob = decode("12D3KooWFqHLgcSSB6dgAZ3SeCFYR4Dpr5w8TEhTdq8JKDxTUvGH");
+    // println!("bob's:{}",bob);
 
 }
 

@@ -5,10 +5,12 @@ use node_template_runtime::{
 };
 use sc_service::ChainType;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-use sp_core::{sr25519, Pair, Public};
+use sp_core::{crypto::UncheckedInto,sr25519, Pair, Public};
 use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use sp_core::OpaquePeerId; // A struct wraps Vec<u8>, represents as our `PeerId`.
+
+use hex_literal::hex;
 
 // The URL for the telemetry server.
 // const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
@@ -52,7 +54,9 @@ pub fn development_config() -> Result<ChainSpec, String> {
 			testnet_genesis(
 				wasm_binary,
 				// Initial PoA authorities
-				vec![authority_keys_from_seed("Alice")],
+				vec![
+					authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")
+				],
 				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
 				// Pre-funded accounts
@@ -92,7 +96,21 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 			testnet_genesis(
 				wasm_binary,
 				// Initial PoA authorities
-				vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
+				vec![
+					// (
+					// 	// refs: https://github.com/starit/sharing-docs/wiki/Substrate-%E5%B8%B8%E8%A7%81%E8%BF%90%E7%BB%B4%E6%93%8D%E4%BD%9C#%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5%E8%8A%82%E7%82%B9%E7%9A%84%E5%8F%82%E7%85%A7%E5%91%BD%E4%BB%A4
+					//
+					// 	//auro: sr25519 ss58 address: 5EcHTMuipQV9wRFTYZMV81g9Xk7LfcFfaCkCs8dNnfA7f4nw.  Public key (hex):
+					// 	hex!["708e2d070222049c6684ce608845d6c28168aa45946593d9a0ce69d3d6c9be56"].unchecked_into(),
+					// 	//gran: ed25519 ss58 address:5FKFgvcLx8vmzwDCDbUDDAddsMWNFB3ad6GQ1ehwUgbGrCkU.  Public key (hex):
+					// 	hex!["8fcd4ac76751ca962f1fe92713c12710f4bdf9c23100baa0030b463aa6218fb8"].unchecked_into(),
+					// ),
+					// (
+					// 	hex!["72b8edbe194dfa3973bf16c2f67de0d369f706a50ce75598ce719a23709ec761"].unchecked_into(),
+					// 	hex!["f3adf3464c7f62f7d5f546ad7d4ec878451b62e239fad3833feac6cf12559eff"].unchecked_into(),
+					// )
+					authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")
+				],
 				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
 				// Pre-funded accounts
@@ -118,7 +136,7 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 		// Telemetry
 		None,
 		// Protocol ID
-		None,
+		Some("ddl"),
 		// Properties
 		None,
 		// Extensions
