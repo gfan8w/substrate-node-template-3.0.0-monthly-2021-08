@@ -17,6 +17,12 @@ default-features = false
 path = '../pallets/template'
 version = '3.0.0-monthly-2021-08'
 
+[dependencies.validatorset]
+default-features = false
+package = 'substrate-validator-set'
+path = '../pallets/substrate-validator-set'
+version = '4.0.0-dev'
+
 [dependencies.pallet-simplestore]
 default-features = false
 path = '../pallets/simplestore'
@@ -28,6 +34,12 @@ path = '../pallets/poe'
 version = '3.0.0-monthly-2021-08'
 
 [dependencies.pallet-node-authorization]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+tag = 'monthly-2021-08'
+version = '4.0.0-dev'
+
+[dependencies.pallet-session]
 default-features = false
 git = 'https://github.com/paritytech/substrate.git'
 tag = 'monthly-2021-08'
@@ -252,4 +264,6 @@ std = [
     'sp-transaction-pool/std',
     'sp-version/std',
     'pallet-node-authorization/std',
+    'validatorset/std',
+    'pallet-session/std',
 ]

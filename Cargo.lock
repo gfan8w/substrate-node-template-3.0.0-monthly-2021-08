@@ -3686,6 +3686,7 @@ dependencies = [
  "pallet-node-authorization",
  "pallet-poe",
  "pallet-randomness-collective-flip",
+ "pallet-session",
  "pallet-simplestore",
  "pallet-sudo",
  "pallet-template",
@@ -3704,6 +3705,7 @@ dependencies = [
  "sp-std",
  "sp-transaction-pool",
  "sp-version",
+ "substrate-validator-set",
  "substrate-wasm-builder",
 ]
 
@@ -7333,6 +7335,23 @@ dependencies = [
  "log",
  "prometheus",
  "tokio 0.2.25",
+]
+
+[[package]]
+name = "substrate-validator-set"
+version = "4.0.0-dev"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-session",
+ "parity-scale-codec",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
