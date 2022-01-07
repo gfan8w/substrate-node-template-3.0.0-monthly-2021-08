@@ -55,6 +55,16 @@
         "descendants": "u32"
     },
     "PeerId": "Vec<u8>",
-    "Keys": "SessionKeys2"
+    "Keys": "SessionKeys2",
+    "Permission": {
+        "_enum": {
+            "Execute": "isize",
+            "Manage":"isize"
+        }
+    },
+    "Role": {
+        "pallet": "Text",
+        "permission": "Permission"
+    }
 }
 

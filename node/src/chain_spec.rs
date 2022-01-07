@@ -5,6 +5,7 @@ use node_template_runtime::{
 	ValidatorSetConfig, //增加动态的validator
 	SessionConfig,
 	opaque::SessionKeys,
+	RBACConfig, // role-base-access-control
 
 };
 use sc_service::ChainType;
@@ -203,7 +204,10 @@ fn testnet_genesis(
 		},
 		sudo: SudoConfig {
 			// Assign network admin rights.
-			key: root_key,
+			key: root_key.clone(),
+		},
+		rbac: RBACConfig {
+			super_admins: vec![root_key.clone()], //vec![get_account_id_from_seed::<sr25519::Public>("Alice")]
 		},
 		// node_authorization: NodeAuthorizationConfig {
 		// 	nodes: vec![

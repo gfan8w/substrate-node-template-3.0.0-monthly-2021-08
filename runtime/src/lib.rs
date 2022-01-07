@@ -37,6 +37,9 @@ pub use frame_support::{
 	},
 	StorageValue,
 };
+
+use pallet_session::historical as pallet_session_historical;
+
 use frame_support::traits::OnUnbalanced;
 pub use pallet_balances::Call as BalancesCall;
 pub use pallet_timestamp::Call as TimestampCall;
@@ -56,6 +59,7 @@ pub use pallet_template;
 pub use pallet_poe;
 pub use pallet_kitties;
 pub use pallet_simplestore;
+pub use substrate_rbac;
 /// An index to a block.
 pub type BlockNumber = u32;
 
@@ -212,6 +216,9 @@ impl pallet_aura::Config for Runtime {
 	type AuthorityId = AuraId;
 }
 
+parameter_types! {
+	pub const ReportLongevity: u64 = 1_000_000_000_000_000;
+}
 impl pallet_grandpa::Config for Runtime {
 	type Event = Event;
 	type Call = Call;
@@ -228,8 +235,22 @@ impl pallet_grandpa::Config for Runtime {
 
 	type HandleEquivocation = ();
 
+	/*type HandleEquivocation = pallet_grandpa::EquivocationHandler<
+		Self::KeyOwnerIdentification,
+		Offences,
+		ReportLongevity,
+	>;*/
+
 	type WeightInfo = ();
 }
+
+
+impl pallet_offences::Config for Runtime {
+	type Event = Event;
+	type IdentificationTuple = pallet_session::historical::IdentificationTuple<Self>;
+	type OnOffenceHandler = (); //Staking;
+}
+
 
 parameter_types! {
 	pub const MinimumPeriod: u64 = SLOT_DURATION / 2;
@@ -335,9 +356,20 @@ impl pallet_session::Config for Runtime {
 	type WeightInfo = ();
 }
 
+impl pallet_session::historical::Config for Runtime {
+	type FullIdentification = ();//pallet_staking::Exposure<AccountId, Balance>;
+	type FullIdentificationOf = ();//pallet_staking::ExposureOf<Runtime>;
+}
+
 parameter_types! {
 	pub const CommissionStorage: PalletId = PalletId(*b"ccm/cosm");
 }
+
+impl substrate_rbac::Config for Runtime {
+	type Event = Event;
+	type RbacAdminOrigin = EnsureRoot<AccountId>;
+}
+
 
 /// Configure the pallet-template in pallets/template.
 impl pallet_template::Config for Runtime {
@@ -348,6 +380,7 @@ impl pallet_template::Config for Runtime {
 
 impl pallet_simplestore::Config for Runtime {
 	type Balance = Balance;
+	type UnixTime = pallet_timestamp::Pallet<Runtime>; //引入时间
 }
 
 impl pallet_poe::Config for Runtime {
@@ -383,12 +416,15 @@ construct_runtime!(
 		Grandpa: pallet_grandpa::{Pallet, Call, Storage, Config, Event},
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
+		Offences: pallet_offences::{Pallet, Storage, Event},
+		Historical: pallet_session_historical::{Pallet},
 		// Include the custom logic from the pallet-template in the runtime.
 		TemplateModule: pallet_template::{Pallet, Call, Storage, Event<T>},
 		PoeModule: pallet_poe::{Pallet, Call, Storage, Event<T>},
 		KittiesModule: pallet_kitties::{Pallet, Call, Storage, Event<T>},
 		SimpleStorage: pallet_simplestore::{Pallet, Call, Storage},  // simpleStorage没有用到Event，这里去掉
 		// NodeAuthorization: pallet_node_authorization::{Pallet, Call, Storage, Config<T>, Event<T>},
+		RBAC: substrate_rbac::{Pallet, Call, Storage, Event<T>, Config<T>},
 	}
 );
 
@@ -407,6 +443,7 @@ pub type SignedExtra = (
 	frame_system::CheckNonce<Runtime>,
 	frame_system::CheckWeight<Runtime>,
 	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
+	substrate_rbac::Authorize<Runtime>,  //role-based-access-control
 );
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic = generic::UncheckedExtrinsic<Address, Call, Signature, SignedExtra>;

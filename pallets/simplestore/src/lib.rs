@@ -13,12 +13,13 @@ pub use pallet::*;
 pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
+	use frame_support::traits::UnixTime;
 	use sp_std::vec::Vec; // Step 3.1 will include this in `Cargo.toml`
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Bounded, One,Zero,Saturating, CheckedAdd, CheckedSub};
 	use  frame_support::weights::Weight;
 	//use frame_support::scale_info::{Type, TypeInfo};  //这个版本还不支持TypeInfo，2021-10才支持
 	use sp_std::fmt;
-
+	use sp_runtime::SaturatedConversion;
 
 	#[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, Default)]
 	pub struct MetaData<AccountId, Balance> {
@@ -33,6 +34,7 @@ pub mod pallet {
 	pub trait Config: frame_system::Config {
 		// The type used to store balances.
 		type Balance: Member + Parameter + AtLeast32BitUnsigned + Default + Copy;
+		type UnixTime: UnixTime; //引入时间
 	}
 
 
@@ -99,6 +101,20 @@ pub mod pallet {
 
 			log::info!("call by:{:?}",sender);
 
+
+			let feed_name ="hello feed name";
+            //引入时间
+			let time =T::UnixTime::now();
+			log::info!("time now:{:?}",time);
+			let millis=time.as_millis().saturated_into::<u64>();
+			log::info!("millis seconds now:{:?}",millis);
+
+			// string++ 字符串相加
+			/*let new_feed_name = (sp_std::str::from_utf8(b"custom_").unwrap().to_owned()
+				+ sp_std::str::from_utf8(b"hello").unwrap())
+				.as_bytes()
+				.to_vec();*/
+
 			Ok(())
 		}
 	}
@@ -142,7 +158,6 @@ pub mod pallet {
 			return meta;
 		}
 	}
-
 
 
 }

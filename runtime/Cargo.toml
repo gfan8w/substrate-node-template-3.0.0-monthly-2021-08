@@ -23,6 +23,11 @@ package = 'substrate-validator-set'
 path = '../pallets/substrate-validator-set'
 version = '4.0.0-dev'
 
+[dependencies.substrate_rbac]
+package = 'substrate-rbac'
+path = '../pallets/substrate-rbac'
+default-features = false
+
 [dependencies.pallet-simplestore]
 default-features = false
 path = '../pallets/simplestore'
@@ -32,6 +37,12 @@ version = '3.0.0-monthly-2021-08'
 default-features = false
 path = '../pallets/poe'
 version = '3.0.0-monthly-2021-08'
+
+[dependencies.pallet-offences]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+tag = 'monthly-2021-08'
+version = '4.0.0-dev'
 
 [dependencies.pallet-node-authorization]
 default-features = false
@@ -44,6 +55,7 @@ default-features = false
 git = 'https://github.com/paritytech/substrate.git'
 tag = 'monthly-2021-08'
 version = '4.0.0-dev'
+features = ["historical",]
 
 [dependencies.pallet-kitties]
 default-features = false
@@ -199,6 +211,7 @@ git = 'https://github.com/paritytech/substrate.git'
 tag = 'monthly-2021-08'
 version = '4.0.0-dev'
 
+
 [dependencies.sp-std]
 default-features = false
 git = 'https://github.com/paritytech/substrate.git'
@@ -216,6 +229,7 @@ default-features = false
 git = 'https://github.com/paritytech/substrate.git'
 tag = 'monthly-2021-08'
 version = '4.0.0-dev'
+
 
 [dependencies.log]
 version = "0.4.14"
@@ -266,4 +280,6 @@ std = [
     'pallet-node-authorization/std',
     'validatorset/std',
     'pallet-session/std',
+    "pallet-offences/std",
+    "substrate_rbac/std",
 ]

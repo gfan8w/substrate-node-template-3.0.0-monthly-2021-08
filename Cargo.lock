@@ -3684,6 +3684,7 @@ dependencies = [
  "pallet-grandpa",
  "pallet-kitties",
  "pallet-node-authorization",
+ "pallet-offences",
  "pallet-poe",
  "pallet-randomness-collective-flip",
  "pallet-session",
@@ -3705,6 +3706,7 @@ dependencies = [
  "sp-std",
  "sp-transaction-pool",
  "sp-version",
+ "substrate-rbac",
  "substrate-validator-set",
  "substrate-wasm-builder",
 ]
@@ -3957,6 +3959,22 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-offences"
+version = "4.0.0-dev"
+source = "git+https://github.com/paritytech/substrate.git?tag=monthly-2021-08#4d28ebeb8b027ca0227fe7779c5beb70a7b56467"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-balances",
+ "parity-scale-codec",
+ "serde",
+ "sp-runtime",
+ "sp-staking",
  "sp-std",
 ]
 
@@ -6154,6 +6172,7 @@ version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5c55b744399c25532d63a0d2789b109df8d46fc93752d46b0782991a931a782f"
 dependencies = [
+ "bitvec 0.20.4",
  "cfg-if 1.0.0",
  "derive_more",
  "parity-scale-codec",
@@ -7335,6 +7354,22 @@ dependencies = [
  "log",
  "prometheus",
  "tokio 0.2.25",
+]
+
+[[package]]
+name = "substrate-rbac"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info 1.0.0",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]

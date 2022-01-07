@@ -1,27 +1,28 @@
 [package]
-authors = ['Substrate DevHub <https://github.com/substrate-developer-hub>']
-description = 'Substrate FRAME pallet template for defining custom runtime logic.'
-edition = '2018'
-homepage = 'https://substrate.dev'
-license = 'Unlicense'
-name = 'pallet-simplestore'
-publish = false
-repository = 'https://github.com/substrate-developer-hub/substrate-node-template/'
-version = '3.0.0-monthly-2021-08'
-readme = 'README.md'
-
-[package.metadata.docs.rs]
-targets = ['x86_64-unknown-linux-gnu']
+name = "substrate-rbac"
+version = "0.1.0"
+authors = ["gautamdhameja"]
+edition = "2018"
+license = "Apache-2.0"
+repository = "https://github.com/gautamdhameja/substrate-rbac"
 
 [dev-dependencies.serde]
+features = ['derive']
 version = '1.0.126'
 
-[dependencies.scale-info]
+[dependencies.sp-core]
 default-features = false
-features = ['derive']
-version = '1.0'
+git = 'https://github.com/paritytech/substrate.git'
+tag = 'monthly-2021-08'
+version = '4.0.0-dev'
 
-[dev-dependencies.sp-core]
+[dependencies.sp-io]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+tag = 'monthly-2021-08'
+version = '4.0.0-dev'
+
+[dependencies.sp-runtime]
 default-features = false
 git = 'https://github.com/paritytech/substrate.git'
 tag = 'monthly-2021-08'
@@ -33,27 +34,11 @@ git = 'https://github.com/paritytech/substrate.git'
 tag = 'monthly-2021-08'
 version = '4.0.0-dev'
 
-[dev-dependencies.sp-io]
-default-features = false
-git = 'https://github.com/paritytech/substrate.git'
-tag = 'monthly-2021-08'
-version = '4.0.0-dev'
-
-[dependencies.sp-runtime]   #这里原来有个 dev-， 把这个依赖放到 dev里去了，坑爹
-default-features = false
-git = 'https://github.com/paritytech/substrate.git'
-tag = 'monthly-2021-08'
-version = '4.0.0-dev'
-
 [dependencies.codec]
 default-features = false
 features = ['derive']
 package = 'parity-scale-codec'
 version = '2.0.0'
-
-[dependencies.log]
-version = "0.4.14"
-default-features = false
 
 [dependencies.frame-benchmarking]
 default-features = false
@@ -74,16 +59,23 @@ git = 'https://github.com/paritytech/substrate.git'
 tag = 'monthly-2021-08'
 version = '4.0.0-dev'
 
-
+[dependencies.scale-info]
+default-features = false
+features = ['derive']
+version = '1.0'
 
 [features]
 default = ['std']
 runtime-benchmarks = ['frame-benchmarking']
 std = [
     'codec/std',
+    'frame-benchmarking/std',
     'frame-support/std',
     'frame-system/std',
-    'frame-benchmarking/std',
+    'scale-info/std',
+    'sp-core/std',
+    'sp-io/std',
     'sp-std/std',
+    'sp-runtime/std',
 ]
 try-runtime = ['frame-support/try-runtime']
