@@ -344,9 +344,14 @@ parameter_types! {
 	type WeightInfo = ();
 }*/
 
+parameter_types! {
+	pub const MinAuthorities: u32 = 2;
+}
+
 impl validatorset::Config for Runtime {
 	type Event = Event;
 	type AddRemoveOrigin = EnsureRoot<AccountId>;
+	type MinAuthorities=MinAuthorities;
 }
 
 impl pallet_session::Config for Runtime {
@@ -476,8 +481,8 @@ construct_runtime!(
 		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>},
 		ValidatorSet: validatorset::{Pallet, Call, Storage, Event<T>, Config<T>},
+		Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>},
 		//这个顺序很重要，必须在 Aura,grandpa之前，在Balances之后， Session在ValidatorSet之后
 		Aura: pallet_aura::{Pallet, Config<T>},
 		Grandpa: pallet_grandpa::{Pallet, Call, Storage, Config, Event},
