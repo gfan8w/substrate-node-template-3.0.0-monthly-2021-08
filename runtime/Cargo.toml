@@ -20,7 +20,7 @@ version = '3.0.0-monthly-2021-08'
 [dependencies.validatorset]
 default-features = false
 package = 'substrate-validator-set'
-path = '../pallets/substrate-validator-set'
+path = '../pallets/validator-set'
 version = '4.0.0-dev'
 
 [dependencies.substrate_rbac]
