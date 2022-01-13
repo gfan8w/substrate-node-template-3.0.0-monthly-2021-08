@@ -17,6 +17,17 @@ default-features = false
 path = '../pallets/template'
 version = '3.0.0-monthly-2021-08'
 
+[dependencies.validatorset]
+default-features = false
+package = 'substrate-validator-set'
+path = '../pallets/substrate-validator-set'
+version = '4.0.0-dev'
+
+[dependencies.substrate_rbac]
+package = 'substrate-rbac'
+path = '../pallets/substrate-rbac'
+default-features = false
+
 [dependencies.pallet-simplestore]
 default-features = false
 path = '../pallets/simplestore'
@@ -27,16 +38,34 @@ default-features = false
 path = '../pallets/poe'
 version = '3.0.0-monthly-2021-08'
 
+[dependencies.pallet-offences]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+tag = 'monthly-2021-08'
+version = '4.0.0-dev'
+
 [dependencies.pallet-node-authorization]
 default-features = false
 git = 'https://github.com/paritytech/substrate.git'
 tag = 'monthly-2021-08'
 version = '4.0.0-dev'
 
+[dependencies.pallet-session]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+tag = 'monthly-2021-08'
+version = '4.0.0-dev'
+features = ["historical",]
+
 [dependencies.pallet-kitties]
 default-features = false
 path = '../pallets/kitties'
 version = '3.0.0-monthly-2021-08'
+
+[dependencies.pallet-ocw]
+default-features = false
+path = '../pallets/ocw'
+version = '3.1.0'
 
 [build-dependencies.substrate-wasm-builder]
 git = 'https://github.com/paritytech/substrate.git'
@@ -187,6 +216,7 @@ git = 'https://github.com/paritytech/substrate.git'
 tag = 'monthly-2021-08'
 version = '4.0.0-dev'
 
+
 [dependencies.sp-std]
 default-features = false
 git = 'https://github.com/paritytech/substrate.git'
@@ -204,6 +234,7 @@ default-features = false
 git = 'https://github.com/paritytech/substrate.git'
 tag = 'monthly-2021-08'
 version = '4.0.0-dev'
+
 
 [dependencies.log]
 version = "0.4.14"
@@ -249,7 +280,14 @@ std = [
     'sp-runtime/std',
     'sp-session/std',
     'sp-std/std',
+    'pallet-ocw/std',
     'sp-transaction-pool/std',
     'sp-version/std',
     'pallet-node-authorization/std',
+    'validatorset/std',
+    'pallet-session/std',
+    "pallet-offences/std",
+    "substrate_rbac/std",
 ]
+
+# cargo tree -i sp-io  这个来查看依赖树

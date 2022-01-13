@@ -15,7 +15,7 @@ pub fn main() {
     //let alice_peerid_hex=alice_peer_id.as_bytes().to_vec();
     //println!("{}",alice_peerid_hex.iter().map(|x|format!("{:02x?}",x)).collect::<Vec<_>>().join(""));
 
-    let hx = hex_literal::hex!("8a1ed431fa78b83f195e228c47777cc4661916fd8b1571ac4e9801ae56560952").to_vec().into();
+    //let hx = hex_literal::hex!("8a1ed431fa78b83f195e228c47777cc4661916fd8b1571ac4e9801ae56560952").to_vec().into();
 
      let charlie = decode("5FBod7BC86ahPWt6U1sxqEozt1MF8m48soYEJkvWTLkAQBje");
      println!("charlie's:{}",charlie);
@@ -45,7 +45,6 @@ fn decode(str: &str) ->String{
 // It can be combined with the pretty modifier as well
     println!("{:#04X?}", data);
 
-    ss
 }
 
 

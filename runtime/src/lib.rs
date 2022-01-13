@@ -2,6 +2,8 @@
 // `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
 #![recursion_limit = "256"]
 
+///会编译成一个wasm版本(no std)，一个native版本(std)，具体用哪个方式运行需要比较这两个版本，
+/// 如果版本一致，优先使用native，命令行可以修改默认的运行方式
 // Make the WASM binary available.
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
@@ -14,7 +16,9 @@ use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, IdentifyAccount, NumberFor, Verify},
+	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, IdentifyAccount, NumberFor, Verify,
+			 OpaqueKeys, //Validator-set
+	},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, MultiSignature,
 };
@@ -35,6 +39,11 @@ pub use frame_support::{
 	},
 	StorageValue,
 };
+
+use codec::Encode;
+
+use pallet_session::historical as pallet_session_historical;
+
 use frame_support::traits::OnUnbalanced;
 pub use pallet_balances::Call as BalancesCall;
 pub use pallet_timestamp::Call as TimestampCall;
@@ -43,9 +52,10 @@ use pallet_transaction_payment::CurrencyAdapter;
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
 use frame_system::EnsureRoot;
+use sp_runtime::SaturatedConversion;
 
-/// Import the template pallet.
 /// todo!(这里要把头引入进来，别忘记了)
+/// Import the template pallet.
 /// 引入模块：template（一个简单的保存i32值功能）
 /// 引入模块：poe（一个简单的存证系统）
 /// 引入模块：kitties（一个简单的花猫系统）
@@ -54,6 +64,8 @@ pub use pallet_template;
 pub use pallet_poe;
 pub use pallet_kitties;
 pub use pallet_simplestore;
+pub use substrate_rbac;
+pub use pallet_ocw;
 /// An index to a block.
 pub type BlockNumber = u32;
 
@@ -210,6 +222,9 @@ impl pallet_aura::Config for Runtime {
 	type AuthorityId = AuraId;
 }
 
+parameter_types! {
+	pub const ReportLongevity: u64 = 1_000_000_000_000_000;
+}
 impl pallet_grandpa::Config for Runtime {
 	type Event = Event;
 	type Call = Call;
@@ -226,8 +241,22 @@ impl pallet_grandpa::Config for Runtime {
 
 	type HandleEquivocation = ();
 
+	/*type HandleEquivocation = pallet_grandpa::EquivocationHandler<
+		Self::KeyOwnerIdentification,
+		Offences,
+		ReportLongevity,
+	>;*/
+
 	type WeightInfo = ();
 }
+
+
+impl pallet_offences::Config for Runtime {
+	type Event = Event;
+	type IdentificationTuple = pallet_session::historical::IdentificationTuple<Self>;
+	type OnOffenceHandler = (); //Staking;
+}
+
 
 parameter_types! {
 	pub const MinimumPeriod: u64 = SLOT_DURATION / 2;
@@ -304,7 +333,7 @@ parameter_types! {
     pub const MaxPeerIdLength: u32 = 128;
 }
 
-impl pallet_node_authorization::Config for Runtime {
+/*impl pallet_node_authorization::Config for Runtime {
 	type Event = Event;
 	type MaxWellKnownNodes = MaxWellKnownNodes;
 	type MaxPeerIdLength = MaxPeerIdLength;
@@ -313,12 +342,40 @@ impl pallet_node_authorization::Config for Runtime {
 	type SwapOrigin = EnsureRoot<AccountId>;
 	type ResetOrigin = EnsureRoot<AccountId>;
 	type WeightInfo = ();
+}*/
+
+impl validatorset::Config for Runtime {
+	type Event = Event;
+	type AddRemoveOrigin = EnsureRoot<AccountId>;
 }
 
+impl pallet_session::Config for Runtime {
+	type SessionHandler = <opaque::SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
+	type ShouldEndSession = ValidatorSet;
+	type SessionManager = ValidatorSet;
+	type Event = Event;
+	type Keys = opaque::SessionKeys;
+	type NextSessionRotation = ValidatorSet;
+	type ValidatorId = <Self as frame_system::Config>::AccountId;
+	type ValidatorIdOf = validatorset::ValidatorOf<Self>;
+	type DisabledValidatorsThreshold = ();
+	type WeightInfo = ();
+}
+
+impl pallet_session::historical::Config for Runtime {
+	type FullIdentification = ();//pallet_staking::Exposure<AccountId, Balance>;
+	type FullIdentificationOf = ();//pallet_staking::ExposureOf<Runtime>;
+}
 
 parameter_types! {
 	pub const CommissionStorage: PalletId = PalletId(*b"ccm/cosm");
 }
+
+impl substrate_rbac::Config for Runtime {
+	type Event = Event;
+	type RbacAdminOrigin = EnsureRoot<AccountId>;
+}
+
 
 /// Configure the pallet-template in pallets/template.
 impl pallet_template::Config for Runtime {
@@ -329,6 +386,7 @@ impl pallet_template::Config for Runtime {
 
 impl pallet_simplestore::Config for Runtime {
 	type Balance = Balance;
+	type UnixTime = pallet_timestamp::Pallet<Runtime>; //引入时间
 }
 
 impl pallet_poe::Config for Runtime {
@@ -337,8 +395,6 @@ impl pallet_poe::Config for Runtime {
 	type WeightInfo = pallet_poe::weights::SubstrateWeight<Runtime>;
 }
 
-
-
 impl pallet_kitties::Config for Runtime {
 	type Event = Event;
 	type Randomness = RandomnessCollectiveFlip;
@@ -346,6 +402,69 @@ impl pallet_kitties::Config for Runtime {
 	type KittyReserve = KittyReserve;
 	type Currency = Balances;
 }
+
+
+/// For pallet-ocw off-chain-work
+impl pallet_ocw::Config for Runtime {
+	type AuthorityId = pallet_ocw::crypto::TestAuthId;
+	type Call = Call;
+	type Event = Event;
+}
+
+impl<LocalCall> frame_system::offchain::CreateSignedTransaction<LocalCall> for Runtime
+	where
+		Call: From<LocalCall>,
+{
+	fn create_transaction<C: frame_system::offchain::AppCrypto<Self::Public, Self::Signature>>(
+		call: Call,
+		public: <Signature as sp_runtime::traits::Verify>::Signer,
+		account: AccountId,
+		index: Index,
+	) -> Option<(Call, <UncheckedExtrinsic as sp_runtime::traits::Extrinsic>::SignaturePayload)> {
+		let period = BlockHashCount::get() as u64;
+		let current_block = System::block_number()
+			.saturated_into::<u64>()
+			.saturating_sub(1);
+		let tip = 0;
+		let extra: SignedExtra = (
+			frame_system::CheckSpecVersion::<Runtime>::new(),
+			frame_system::CheckTxVersion::<Runtime>::new(),
+			frame_system::CheckGenesis::<Runtime>::new(),
+			frame_system::CheckEra::<Runtime>::from(generic::Era::mortal(period, current_block)),
+			frame_system::CheckNonce::<Runtime>::from(index),
+			frame_system::CheckWeight::<Runtime>::new(),
+			pallet_transaction_payment::ChargeTransactionPayment::<Runtime>::from(tip),
+			substrate_rbac::Authorize::<Runtime>::new(),
+		);
+
+		let raw_payload = SignedPayload::new(call, extra)
+			.map_err(|e| {
+				log::warn!("Unable to create signed payload: {:?}", e);
+			})
+			.ok()?;
+		let signature = raw_payload.using_encoded(|payload| C::sign(payload, public))?;
+		let address = account;
+		let (call, extra, _) = raw_payload.deconstruct();
+		Some((call, (sp_runtime::MultiAddress::Id(address), signature.into(), extra)))
+	}
+}
+
+impl frame_system::offchain::SigningTypes for Runtime {
+	type Public = <Signature as sp_runtime::traits::Verify>::Signer;
+	type Signature = Signature;
+}
+
+impl<C> frame_system::offchain::SendTransactionTypes<C> for Runtime
+	where
+		Call: From<C>,
+{
+	type OverarchingCall = Call;
+	type Extrinsic = UncheckedExtrinsic;
+}
+// support off-chain-work
+
+
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -356,17 +475,24 @@ construct_runtime!(
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
+		Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>},
+		ValidatorSet: validatorset::{Pallet, Call, Storage, Event<T>, Config<T>},
+		//这个顺序很重要，必须在 Aura,grandpa之前，在Balances之后， Session在ValidatorSet之后
 		Aura: pallet_aura::{Pallet, Config<T>},
 		Grandpa: pallet_grandpa::{Pallet, Call, Storage, Config, Event},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
+		Offences: pallet_offences::{Pallet, Storage, Event},
+		Historical: pallet_session_historical::{Pallet},
 		// Include the custom logic from the pallet-template in the runtime.
 		TemplateModule: pallet_template::{Pallet, Call, Storage, Event<T>},
 		PoeModule: pallet_poe::{Pallet, Call, Storage, Event<T>},
 		KittiesModule: pallet_kitties::{Pallet, Call, Storage, Event<T>},
 		SimpleStorage: pallet_simplestore::{Pallet, Call, Storage},  // simpleStorage没有用到Event，这里去掉
-		NodeAuthorization: pallet_node_authorization::{Pallet, Call, Storage, Config<T>, Event<T>},
+		// NodeAuthorization: pallet_node_authorization::{Pallet, Call, Storage, Config<T>, Event<T>},
+		RBAC: substrate_rbac::{Pallet, Call, Storage, Event<T>, Config<T>},
+		OcwDemo: pallet_ocw::{Pallet, Call, Storage, Event<T>, ValidateUnsigned},
 	}
 );
 
@@ -385,9 +511,12 @@ pub type SignedExtra = (
 	frame_system::CheckNonce<Runtime>,
 	frame_system::CheckWeight<Runtime>,
 	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
+	substrate_rbac::Authorize<Runtime>,  //role-based-access-control
 );
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic = generic::UncheckedExtrinsic<Address, Call, Signature, SignedExtra>;
+
+pub type SignedPayload = generic::SignedPayload<Call, SignedExtra>;
 /// Executive: handles dispatch to the various modules.
 pub type Executive = frame_executive::Executive<
 	Runtime,

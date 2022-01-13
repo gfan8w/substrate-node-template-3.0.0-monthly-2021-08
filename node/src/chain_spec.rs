@@ -1,7 +1,12 @@
 use node_template_runtime::{
 	AccountId, AuraConfig, BalancesConfig, GenesisConfig, GrandpaConfig, Signature, SudoConfig,
 	SystemConfig, WASM_BINARY,
-	NodeAuthorizationConfig,
+	// NodeAuthorizationConfig,
+	ValidatorSetConfig, //增加动态的validator
+	SessionConfig,
+	opaque::SessionKeys,
+	RBACConfig, // role-base-access-control
+
 };
 use sc_service::ChainType;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -35,10 +40,27 @@ where
 	AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
 }
 
-/// Generate an Aura authority key.
-pub fn authority_keys_from_seed(s: &str) -> (AuraId, GrandpaId) {
+/// 改为由下面的函数提供
+/*pub fn authority_keys_from_seed(s: &str) -> (AuraId, GrandpaId) {
 	(get_from_seed::<AuraId>(s), get_from_seed::<GrandpaId>(s))
+}*/
+
+/// Generate an Aura GrandpaId authority key.
+pub fn authority_keys_from_seed(s: &str) -> (AccountId, AuraId, GrandpaId) {
+	(
+		get_account_id_from_seed::<sr25519::Public>(s),
+		get_from_seed::<AuraId>(s),
+		get_from_seed::<GrandpaId>(s)
+	)
 }
+
+fn session_keys(
+	aura: AuraId,
+	grandpa: GrandpaId,
+) -> SessionKeys {
+	SessionKeys { aura, grandpa }
+}
+
 
 /// --dev 命令行用这个，会执行这个函数
 pub fn development_config() -> Result<ChainSpec, String> {
@@ -147,7 +169,7 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 /// Configure initial storage state for FRAME modules.
 fn testnet_genesis(
 	wasm_binary: &[u8],
-	initial_authorities: Vec<(AuraId, GrandpaId)>,
+	initial_authorities: Vec<(AccountId, AuraId, GrandpaId)>,
 	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,
 	_enable_println: bool,
@@ -162,31 +184,46 @@ fn testnet_genesis(
 			// Configure endowed accounts with initial balance of 1 << 60.
 			balances: endowed_accounts.iter().cloned().map(|k| (k, 1 << 60)).collect(),
 		},
+		//顺序很重要，在BalancesConfig 之后，
+		validator_set: ValidatorSetConfig {
+			validators: initial_authorities.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
+		},
+		session: SessionConfig {
+			keys: initial_authorities.iter().map(|x| {
+				(x.0.clone(), x.0.clone(), session_keys(x.1.clone(), x.2.clone()))
+			}).collect::<Vec<_>>(),
+		},
+		// validator_set 和 session 在 aura、grandpa之前
 		aura: AuraConfig {
-			authorities: initial_authorities.iter().map(|x| (x.0.clone())).collect(),
+			//authorities: initial_authorities.iter().map(|x| (x.0.clone())).collect(),
+			authorities: vec![], // 改为由 session里提供
 		},
 		grandpa: GrandpaConfig {
-			authorities: initial_authorities.iter().map(|x| (x.1.clone(), 1)).collect(),
+			//authorities: initial_authorities.iter().map(|x| (x.1.clone(), 1)).collect(),
+			authorities: vec![], // 改为由 session里提供
 		},
 		sudo: SudoConfig {
 			// Assign network admin rights.
-			key: root_key,
+			key: root_key.clone(),
 		},
-		node_authorization: NodeAuthorizationConfig {
-			nodes: vec![
-				(
-					// 因为 alice 已经配置为auro和gran的key，这里用 subkey generate-node-key 生成一个node key做Alice的节点key。
-					// endowed_accounts[0] 是 Alice， endowed_accounts[1]是 Bob
-					// 213216127a8a8756f4017d2aaafa7e0054e9958e7ded5d5784c5e2f6f6365e0f node-key, peer id:
-					OpaquePeerId(bs58::decode("12D3KooWFzXtYJhUkMsWTXQodYaXhs6ah52xVExicuFPvmUQoZrE").into_vec().unwrap()),
-					endowed_accounts[0].clone()
-				),
-				(
-					// 3b7a5239d28e90a6941dba9266b8f7135b966885e21988fb0c6e7f55516c73f3 node-key, peer id:
-					OpaquePeerId(bs58::decode("12D3KooWFqHLgcSSB6dgAZ3SeCFYR4Dpr5w8TEhTdq8JKDxTUvGH").into_vec().unwrap()),
-					endowed_accounts[1].clone()
-				),
-			],
+		rbac: RBACConfig {
+			super_admins: vec![root_key.clone()], //vec![get_account_id_from_seed::<sr25519::Public>("Alice")]
 		},
+		// node_authorization: NodeAuthorizationConfig {
+		// 	nodes: vec![
+		// 		(
+		// 			// 因为 alice 已经配置为auro和gran的key，这里用 subkey generate-node-key 生成一个node key做Alice的节点key。
+		// 			// endowed_accounts[0] 是 Alice， endowed_accounts[1]是 Bob
+		// 			// 213216127a8a8756f4017d2aaafa7e0054e9958e7ded5d5784c5e2f6f6365e0f node-key, peer id:
+		// 			OpaquePeerId(bs58::decode("12D3KooWFzXtYJhUkMsWTXQodYaXhs6ah52xVExicuFPvmUQoZrE").into_vec().unwrap()),
+		// 			endowed_accounts[0].clone()
+		// 		),
+		// 		(
+		// 			// 3b7a5239d28e90a6941dba9266b8f7135b966885e21988fb0c6e7f55516c73f3 node-key, peer id:
+		// 			OpaquePeerId(bs58::decode("12D3KooWFqHLgcSSB6dgAZ3SeCFYR4Dpr5w8TEhTdq8JKDxTUvGH").into_vec().unwrap()),
+		// 			endowed_accounts[1].clone()
+		// 		),
+		// 	],
+		// },
 	}
 }
