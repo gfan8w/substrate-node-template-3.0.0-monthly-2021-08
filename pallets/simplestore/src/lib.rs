@@ -154,7 +154,7 @@ pub mod pallet {
 		pub fn get_meta_data() -> MetaData<T::AccountId, T::Balance> {
 			let meta = self::MetaDataStore::<T>::get();
 			log::info!("simple storage has a meta info:{:?}",meta);
-			// sp_std::fmt::format("Hello,{}","world");   //不知道为什么，这句话报错
+			//core::fmt::format!("Hello,{}","world");   //不知道为什么，这句话报错
 			return meta;
 		}
 	}

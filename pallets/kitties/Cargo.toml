@@ -16,7 +16,9 @@ targets = ['x86_64-unknown-linux-gnu']
 # 因为要引入 Deserialize, Serialize， 没引入之前编译器提示 frame_support::Serialize ，sp_runtime::Serialize
 # 可我偏要从serde 引入一个
 [dependencies.serde]
-version = '1.0.126'
+version = '1.0.130'
+default-features = false
+
 
 # 打日志
 [dependencies.log]
@@ -92,7 +94,8 @@ git = 'https://github.com/paritytech/substrate.git'
 tag = 'monthly-2021-08'
 version = '4.0.0-dev'
 
-
+[dependencies.hex-literal]
+version = '0.3.1'
 
 
 [features]

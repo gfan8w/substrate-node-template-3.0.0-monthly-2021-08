@@ -268,6 +268,16 @@ pub mod pallet {
 		pub fn create(origin: OriginFor<T>) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
+			//比较2个账号是否相等
+			// 参考：https://stackoverflow.com/questions/65507360/how-do-i-compare-the-trait-type-with-the-string-type-in-substrate-module
+			let account_bytes: Vec<u8> = who.encode();
+			let match_bytes: Vec<u8> = hex_literal::hex!["d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"].into();
+
+			if account_bytes == match_bytes {
+				log::info!("account match")
+			}
+
+
 			// 质押资产
 			T::Currency::reserve(&who, T::KittyReserve::get())
 				.map_err(|_| Error::<T>::MoneyNotEnough)?;

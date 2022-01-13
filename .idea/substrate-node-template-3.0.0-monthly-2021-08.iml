@@ -12,6 +12,9 @@
       <sourceFolder url="file://$MODULE_DIR$/node/examples" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/pallets/substrate-validator-set/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/pallets/substrate-rbac/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/arrform/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/arrform/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/pallets/ocw/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

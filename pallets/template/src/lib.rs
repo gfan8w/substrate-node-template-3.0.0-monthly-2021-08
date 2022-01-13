@@ -123,6 +123,7 @@ pub mod pallet {
 
 			let ca : T::AccountId=T::CommissionStorage::get().into_account();
 
+
 			// Update storage.
 			<Something<T>>::put(something);
 
