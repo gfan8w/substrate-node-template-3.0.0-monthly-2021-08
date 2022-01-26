@@ -2,7 +2,7 @@
 #![warn(missing_docs)]
 
 mod chain_spec;
-#[macro_use]
+#[macro_use]  //会加载引入的模块下的所有宏
 mod service;
 mod cli;
 mod command;

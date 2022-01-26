@@ -119,7 +119,7 @@ pub mod pallet {
 	};
 	use frame_system::pallet_prelude::*;
 	use codec::{Encode,Decode};
-	use sp_core::U256;
+	use sp_core::{U256,crypto::{AccountId32}};
 	use sp_io::hashing::blake2_128;
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Bounded, One};
 	use sp_std::vec::Vec;
@@ -156,7 +156,7 @@ pub mod pallet {
 	/// Configure the pallet by specifying the parameters and types on which it depends.
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
-		/// Because this pallet emits events, it depends on the runtime's definition of an event.
+		/// 这个Event类型可以转换成System模块下的的Event，也可以由当前的template模块定义的Event转换而来。
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		type Randomness: Randomness<Self::Hash, Self::BlockNumber>;
 
@@ -169,7 +169,8 @@ pub mod pallet {
 		// Currency 类型，用于质押等于资产相关的操作
 		type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 
-
+		//一个目标地址，通过在runtime中指定，从外部注入一个账号
+		type CharityDest: Get<<Self as frame_system::Config>::AccountId>;
 
 	}
 
@@ -273,10 +274,17 @@ pub mod pallet {
 			let account_bytes: Vec<u8> = who.encode();
 			let match_bytes: Vec<u8> = hex_literal::hex!["d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"].into();
 
+			let account: AccountId32 = hex_literal::hex!["d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"].into();
+			let ss58_account = "";//account.to_ss58check();
+
+			log::info!("account:{:?}, ss58:{:?}",account,ss58_account);
+
 			if account_bytes == match_bytes {
 				log::info!("account match")
 			}
 
+			let charity_dest = T::CharityDest::get();
+			log::info!("CharityDest：{:?}",charity_dest);
 
 			// 质押资产
 			T::Currency::reserve(&who, T::KittyReserve::get())
