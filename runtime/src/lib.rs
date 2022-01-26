@@ -3,8 +3,9 @@
 #![recursion_limit = "256"]
 
 ///会编译成一个wasm版本(no std)，一个native版本(std)，具体用哪个方式运行需要比较这两个版本，
-/// 如果版本一致，优先使用native，命令行可以修改默认的运行方式
-// Make the WASM binary available.
+/// 如果版本一致，优先使用native，命令行可以修改默认的运行方式,
+/// wasm 又分 wasm-execution=compiled  和 interpreted 2种方式， native最快，compiled wasm慢1倍，interpreted慢 10倍
+// 使用std featue编译时，将生成的Wasm二进制内容通过常量的方式引入到当前runtime代码中
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
@@ -13,7 +14,7 @@ use pallet_grandpa::{
 };
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
+use sp_core::{crypto::{KeyTypeId}, OpaqueMetadata};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, IdentifyAccount, NumberFor, Verify,
@@ -144,7 +145,7 @@ pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
 pub const HOURS: BlockNumber = MINUTES * 60;
 pub const DAYS: BlockNumber = HOURS * 24;
 
-/// The version information used to identify this runtime when compiled natively.
+/// 指定当前的NativeVersion，在执行交易时会把NativeVersion和链上的RuntimeVersion进行比较，如果不一致，通常情况下会使用Wasm执行交易。
 #[cfg(feature = "std")]
 pub fn native_version() -> NativeVersion {
 	NativeVersion { runtime_version: VERSION, can_author_with: Default::default() }
@@ -152,6 +153,7 @@ pub fn native_version() -> NativeVersion {
 
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 
+///使用parameter_types宏生成一些后面功能模块所需的满足Get接口的数据类型
 parameter_types! {
 	pub const Version: RuntimeVersion = VERSION;
 	pub const BlockHashCount: BlockNumber = 2400;
@@ -344,9 +346,14 @@ parameter_types! {
 	type WeightInfo = ();
 }*/
 
+parameter_types! {
+	pub const MinAuthorities: u32 = 2;
+}
+
 impl validatorset::Config for Runtime {
 	type Event = Event;
 	type AddRemoveOrigin = EnsureRoot<AccountId>;
+	type MinAuthorities=MinAuthorities;
 }
 
 impl pallet_session::Config for Runtime {
@@ -395,12 +402,19 @@ impl pallet_poe::Config for Runtime {
 	type WeightInfo = pallet_poe::weights::SubstrateWeight<Runtime>;
 }
 
+parameter_types! {
+	///一个Hard-Code的账号
+	pub CharityDest : AccountId = hex_literal::hex!["d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"].into();
+	//pub CharityDest : AccountId =AccountId::from_ss58check("5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY").unwrap(); //AccountSs58Format
+}
+
 impl pallet_kitties::Config for Runtime {
 	type Event = Event;
 	type Randomness = RandomnessCollectiveFlip;
 	type KittyIndex = u32;
 	type KittyReserve = KittyReserve;
 	type Currency = Balances;
+	type CharityDest =CharityDest;
 }
 
 
@@ -465,7 +479,7 @@ impl<C> frame_system::offchain::SendTransactionTypes<C> for Runtime
 
 
 
-// Create the runtime by composing the FRAME pallets that were previously configured.
+///构造时，是按照顺序加载初始存储的，所以当B模块依赖A模块时，应当将A模块放在B之前。
 construct_runtime!(
 	pub enum Runtime where
 		Block = Block,
@@ -476,8 +490,8 @@ construct_runtime!(
 		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>},
 		ValidatorSet: validatorset::{Pallet, Call, Storage, Event<T>, Config<T>},
+		Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>},
 		//这个顺序很重要，必须在 Aura,grandpa之前，在Balances之后， Session在ValidatorSet之后
 		Aura: pallet_aura::{Pallet, Config<T>},
 		Grandpa: pallet_grandpa::{Pallet, Call, Storage, Config, Event},
