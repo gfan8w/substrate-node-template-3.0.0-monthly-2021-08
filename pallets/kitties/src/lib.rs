@@ -283,6 +283,8 @@ pub mod pallet {
 				log::info!("account match")
 			}
 
+			// let my_value = <T::BlockNumber as As<u64>>::sa(0);
+
 			let charity_dest = T::CharityDest::get();
 			log::info!("CharityDest：{:?}",charity_dest);
 

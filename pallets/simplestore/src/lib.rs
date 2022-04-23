@@ -155,7 +155,8 @@ pub mod pallet {
 			let meta = self::MetaDataStore::<T>::get();
 			log::info!("simple storage has a meta info:{:?}",meta);
 			//core::fmt::format!("Hello,{}","world");   //不知道为什么，这句话报错
-			//sp_std::fmt::format!("Hello,{}","world");
+			//sp_std::fmt::format("Hello,{}","world");
+			//sp_std::alloc::format!("simple storage has a meta info:{:?}",meta);
 			return meta;
 		}
 	}

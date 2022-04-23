@@ -16,3 +16,4 @@
 .direnv
 /js-component/.idea/
 /js-component/node_modules/
+.idea
