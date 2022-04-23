@@ -145,9 +145,16 @@ pub mod pallet {
 
 			ensure!(owner==sender, Error::<T>::NotClaimOwner);
 
-			Proofs::<T>::remove(&claim);
+			Proofs::<T>::remove(&claim); // remove 不是必须的，因为后续insert，相同的key是覆盖
 
 			Proofs::<T>::insert(&claim, (target.clone(), frame_system::Pallet::<T>::block_number()));
+
+			// 改变值的方法，除了insert，还可以mutate
+			Proofs::<T>::mutate(&claim, |value|{
+				let mut v =value.as_mut().unwrap();
+				v.0 = target.clone();
+				v.1 = frame_system::Pallet::<T>::block_number();
+			});
 
 			Self::deposit_event(Event::ClaimTransfered(sender,target,claim));
 
