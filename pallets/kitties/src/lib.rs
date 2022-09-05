@@ -265,6 +265,16 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T:Config> Pallet<T> {
+
+		#[pallet::weight(0)]
+		pub fn create_event(origin: OriginFor<T>) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+			let kitty_id: T::KittyIndex = 1u32.into();
+			Self::deposit_event(Event::KittyCreate(who.clone(),kitty_id));
+			Ok(())
+		}
+
+
 		#[pallet::weight(0)]
 		pub fn create(origin: OriginFor<T>) -> DispatchResult {
 			let who = ensure_signed(origin)?;
