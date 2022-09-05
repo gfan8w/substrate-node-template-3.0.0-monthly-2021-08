@@ -152,6 +152,35 @@ fn crete_claim_failed_when_too_large_claim() {
 }
 
 
+#[test]
+fn transfer_claim_not_claim_owner() {
+	new_test_ext().execute_with(|| {
+		// 将一段文本转换为 claim，这更符合日常应用
+		let claim ="hello".as_bytes().to_vec();
+		// 使用关联类型来定义变量。这里的实际类型是 u64，如果 user_a = 1u32 则会报错
+		let user_a: <Test as frame_system::Config>::AccountId = 1; // 这里赋值 1u32会报错，赋值 1u64可编译通过
+		let user_b: <Test as frame_system::Config>::AccountId = 2;
+		let user_ghost: <Test as frame_system::Config>::AccountId = 100;
+
+		PoeModule::create_claim(Origin::signed(user_a), claim.clone());
+		assert_noop!(PoeModule::transfer_claim(Origin::signed(user_ghost), user_b, claim.clone()),Error::<Test>::NotClaimOwner);
+	});
+}
+
+#[test]
+fn transfer_claim_claim_ok() {
+	new_test_ext().execute_with(|| {
+		let claim ="hello".as_bytes().to_vec();
+		let user_a: <Test as frame_system::Config>::AccountId = 1u64;
+		let user_b: <Test as frame_system::Config>::AccountId = 2u64;
+
+		let _ = PoeModule::create_claim(Origin::signed(user_a), claim.clone());
+		assert_ok!(PoeModule::transfer_claim(Origin::signed(user_a), user_b, claim.clone()));
+		assert_eq!(Proofs::<Test>::get(&claim),Some((user_b,frame_system::Pallet::<Test>::block_number())))
+	});
+}
+
+
 
 
 
