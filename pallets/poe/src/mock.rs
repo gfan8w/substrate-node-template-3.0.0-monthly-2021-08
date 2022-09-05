@@ -1,5 +1,6 @@
 use crate as pallet_poe;
 use frame_support::parameter_types;
+use frame_support::traits::ConstU32;
 use frame_system as system;
 use sp_core::H256;
 use sp_runtime::{
@@ -26,7 +27,7 @@ frame_support::construct_runtime!(
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const SS58Prefix: u8 = 42;
-	pub const MaxClaimLength: u32 = 5;
+	// pub const MaxClaimLength: u32 = 5;  // 改为直接使用 ConstU32<64>
 }
 
 impl system::Config for Test {
@@ -59,7 +60,7 @@ impl system::Config for Test {
 
 impl pallet_poe::Config for Test {
 	type Event = Event;
-	type MaxClaimLength = MaxClaimLength;
+	type MaxClaimLength = ConstU32<5>; // 不再引用 MaxClaimLength，而是直接引用 ConstU32， BoundedVec第二个参数只能是u32。
 	type WeightInfo =();
 
 }
