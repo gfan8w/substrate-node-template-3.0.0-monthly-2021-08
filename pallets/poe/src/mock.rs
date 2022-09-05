@@ -60,10 +60,17 @@ impl system::Config for Test {
 impl pallet_poe::Config for Test {
 	type Event = Event;
 	type MaxClaimLength = MaxClaimLength;
+	type WeightInfo =();
 
 }
 
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
-	system::GenesisConfig::default().build_storage::<Test>().unwrap().into()
+	// system::GenesisConfig::default().build_storage::<Test>().unwrap().into()
+
+	let mut t = system::GenesisConfig::default().build_storage::<Test>().unwrap().into();
+
+	let mut ext = sp_io::TestExternalities::new(t);
+	ext.execute_with(|| System::set_block_number(1)); // 生成1个块，System::assert_last_event需要，否则报错
+	ext
 }

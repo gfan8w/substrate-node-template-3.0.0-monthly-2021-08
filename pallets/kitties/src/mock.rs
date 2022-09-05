@@ -28,6 +28,7 @@ parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const SS58Prefix: u8 = 42;
 	pub const KittyReserve: u64 = 1_000;
+	pub const CharityDestAccount: u64 = 100;
 }
 
 pub type Balance = u128;
@@ -88,12 +89,14 @@ impl pallet_kitties::Config for Test {
 	type KittyIndex = u32;
 	type KittyReserve = KittyReserve;
 	type Currency = Balances;
+	type CharityDest = CharityDestAccount;
 }
 
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut t = system::GenesisConfig::default().build_storage::<Test>().unwrap().into();
 
+	// 初始化账号一部分金额
 	pallet_balances::GenesisConfig::<Test> {
 		balances: vec![(1, 10000), (2, 20000), (3, 30000)],
 	}
@@ -101,6 +104,6 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 		.unwrap();
 
 	let mut ext = sp_io::TestExternalities::new(t);
-	ext.execute_with(|| System::set_block_number(1));
+	ext.execute_with(|| System::set_block_number(1)); //初始化，已出1个块。
 	ext
 }

@@ -4,6 +4,9 @@ use super::*;
 use frame_system as system;
 
 /*
+运行：
+cargo test -p pallet-poe
+
 对于单元测试，是由开发人员完成的最低级别测试，直接影响软件后期测试及产品质量。通常我们有两种方法进行单测设计，以确保达到足够的测试强度和准确度：
 基于控制流覆盖准则：
 ① 语句覆盖(Statement Coverage，SC)；
@@ -33,15 +36,24 @@ fn create_claim_ok() {
 
 
 #[test]
-fn create_claim_ok_2() {
+fn create_claim_ok_verify_event_claim_created() {
 	new_test_ext().execute_with(|| {
 		let claim =vec![0,1];
-		assert_ok!(PoeModule::create_claim(Origin::signed(1),claim.clone()));
+		let alice: u64 =1;
+		assert_ok!(PoeModule::create_claim(Origin::signed(alice),claim.clone()));
+
+		PoeModule::create_claim(Origin::signed(alice),claim.clone());
+		// //检查事件
+		System::assert_last_event(mock::Event::PoeModule(crate::Event::ClaimCreated(
+			alice, claim.clone(),
+		)));
+
 		let rest=Proofs::<Test>::try_get(&claim);
-		//println!("{}",rest.unwrap());
+		println!("{},{}",rest.unwrap().0,rest.unwrap().1);
 		assert_eq!(rest.unwrap(),
-				   (1,frame_system::Pallet::<Test>::block_number())
+				   (alice, frame_system::Pallet::<Test>::block_number())
 		);
+
 	});
 }
 

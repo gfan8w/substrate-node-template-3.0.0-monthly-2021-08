@@ -56,6 +56,18 @@ fn run_to_block( n: u64) {
 	}
 }
 
+
+#[test]
+fn test_create_event_ok() {
+	new_test_ext().execute_with(|| {
+		KittiesModule::create_event(Origin::signed(ALICE));
+		//检查事件
+		System::assert_last_event(mock::Event::KittiesModule(crate::Event::KittyCreate(
+			ALICE, 1,
+		)));
+	});
+}
+
 #[test]
 fn can_create_work() {
 	new_test_ext().execute_with(|| {
