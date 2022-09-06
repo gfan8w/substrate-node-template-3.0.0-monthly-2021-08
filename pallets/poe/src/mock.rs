@@ -1,5 +1,6 @@
 use crate as pallet_poe;
 use frame_support::parameter_types;
+use frame_support::traits::ConstU32;
 use frame_system as system;
 use sp_core::H256;
 use sp_runtime::{
@@ -10,6 +11,7 @@ use sp_runtime::{
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
+pub const MAX_CLAIM_LENGTH: u32 = 5;
 
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(
@@ -23,10 +25,29 @@ frame_support::construct_runtime!(
 	}
 );
 
+/**
+MaxClaimLengthDefinedInMock宏展开后的真相：
+
+pub struct MaxClaimLengthDefinedInMock;
+impl MaxClaimLengthDefinedInMock {
+    /// Returns the value of this parameter type.
+    #[allow(unused)]
+    pub const fn get() -> u32 {
+        5
+    }
+}
+impl<I: From<u32>> ::frame_support::traits::Get<I> for MaxClaimLengthDefinedInMock {
+    fn get() -> I {
+        I::from(5)
+    }
+}
+
+*/
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const SS58Prefix: u8 = 42;
-	pub const MaxClaimLength: u32 = 5;
+	pub const MaxClaimLengthDefinedInMock: u32 = 5;  // 改为直接使用 ConstU32<64>，这个弃用，
+	// MaxClaimLengthDefinedInMock 宏展开后的真相 如上注释
 }
 
 impl system::Config for Test {
@@ -59,7 +80,7 @@ impl system::Config for Test {
 
 impl pallet_poe::Config for Test {
 	type Event = Event;
-	type MaxClaimLength = MaxClaimLength;
+	type MaxClaimLength = ConstU32<MAX_CLAIM_LENGTH>; // 不再引用 MaxClaimLength，而是直接引用 ConstU32， BoundedVec第二个参数只能是u32。
 	type WeightInfo =();
 
 }

@@ -42,6 +42,7 @@ pub use frame_support::{
 };
 
 use codec::Encode;
+use frame_support::pallet_prelude::*;
 
 use pallet_session::historical as pallet_session_historical;
 
@@ -398,7 +399,7 @@ impl pallet_simplestore::Config for Runtime {
 
 impl pallet_poe::Config for Runtime {
 	type Event = Event;
-	type MaxClaimLength = MaxClaimLength;
+	type MaxClaimLength = ConstU32<64>; // 不再引用 MaxClaimLength，而是直接引用 ConstU32， BoundedVec第二个参数只能是u32。
 	type WeightInfo = pallet_poe::weights::SubstrateWeight<Runtime>;
 }
 

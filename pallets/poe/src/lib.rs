@@ -16,6 +16,14 @@ extern crate frame_system;
 /// 学习写一个 poe
 /// <https://substrate.dev/docs/en/knowledgebase/runtime/frame>
 
+/**
+展开宏:
+展开测试
+cargo expand --tests --lib > pallet-poe.test.expand.rs
+cargo expand -p pallet-poe > pallet-poe.expand.rs
+*/
+
+
 //把数据类型暴露出去
 pub use pallet::*;
 
@@ -26,10 +34,11 @@ pub use pallet::*;
 pub mod pallet {
 
 	use frame_support::{dispatch::DispatchResultWithPostInfo, pallet_prelude::*};
-	use frame_system::pallet_prelude::*;
+	use frame_system::pallet_prelude::*; // 包含 BoundedVec
 	pub use crate::weights::WeightInfo;
 	use sp_std::vec::Vec;
 	//use sp_std::prelude::*;
+	use core::convert::TryFrom; // BoundedVec::try_from
 
 	/// Configure the pallet by specifying the parameters and types on which it depends.
 	#[pallet::config]
@@ -37,6 +46,7 @@ pub mod pallet {
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
+		#[pallet::constant]
 		type MaxClaimLength: Get<u32>;
 
 		/// Information on runtime weights.
@@ -50,7 +60,7 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn proofs)]
-	pub type Proofs<T:Config> = StorageMap<_, Blake2_128Concat, Vec<u8>, (T::AccountId, T::BlockNumber)>;
+	pub type Proofs<T:Config> = StorageMap<_, Blake2_128Concat, BoundedVec<u8, T::MaxClaimLength>, (T::AccountId, T::BlockNumber)>;
 
 
 
@@ -92,8 +102,6 @@ pub mod pallet {
 		pub fn create_claim(origin: OriginFor<T>, claim: Vec<u8>) -> DispatchResultWithPostInfo{
 			let sender = ensure_signed(origin)?;
 
-			ensure!(!Proofs::<T>::contains_key(&claim), Error::<T>::ProofAlreadyExist);
-
 			/*let claim_len=claim.len();
 			println!("{}",claim_len);
 			if claim_len>10 {
@@ -102,12 +110,16 @@ pub mod pallet {
 
 			//ensure!(claim.len()<=10, Error::<T>::ClaimTooLarge);
 
-			ensure!(
-                T::MaxClaimLength::get() >= claim.len() as u32,
-                Error::<T>::ClaimTooLarge
-            );
+			// ensure!(
+            //     T::MaxClaimLength::get() >= claim.len() as u32,
+            //     Error::<T>::ClaimTooLarge
+            // );
 
-			Proofs::<T>::insert(&claim, (sender.clone(), frame_system::Pallet::<T>::block_number()));
+			let bounded_vec = BoundedVec::<u8, T::MaxClaimLength>::try_from(claim.clone()).map_err(|_|Error::<T>::ClaimTooLarge)?;
+
+			ensure!(!Proofs::<T>::contains_key(&bounded_vec), Error::<T>::ProofAlreadyExist);
+
+			Proofs::<T>::insert(&bounded_vec, (sender.clone(), frame_system::Pallet::<T>::block_number()));
 
 			Self::deposit_event(Event::ClaimCreated(sender,claim));
 
@@ -122,11 +134,13 @@ pub mod pallet {
 			//使用ok_or,这里注销掉
 			//ensure!(Proofs::<T>::contains_key(&claim), Error::<T>::ProofNotExist);
 
-			let (owner,_) = Proofs::<T>::get(&claim).ok_or(Error::<T>::ProofNotExist)?;
+			let bounded_vec = BoundedVec::<u8, T::MaxClaimLength>::try_from(claim.clone()).map_err(|_|Error::<T>::ClaimTooLarge)?;
+
+			let (owner,_) = Proofs::<T>::get(&bounded_vec).ok_or(Error::<T>::ProofNotExist)?;
 
 			ensure!(owner==sender, Error::<T>::NotClaimOwner);
 
-			Proofs::<T>::remove(&claim);
+			Proofs::<T>::remove(&bounded_vec);
 
 			Self::deposit_event(Event::ClaimRevoked(sender,claim));
 
@@ -141,16 +155,18 @@ pub mod pallet {
 			//使用ok_or,这里注销掉
 			//ensure!(Proofs::<T>::contains_key(&claim), Error::<T>::ProofNotExist);
 
-			let (owner,_) = Proofs::<T>::get(&claim).ok_or(Error::<T>::ProofNotExist)?;
+			let bounded_vec = BoundedVec::<u8, T::MaxClaimLength>::try_from(claim.clone()).map_err(|_|Error::<T>::ClaimTooLarge)?;
+
+			let (owner,_) = Proofs::<T>::get(&bounded_vec).ok_or(Error::<T>::ProofNotExist)?;
 
 			ensure!(owner==sender, Error::<T>::NotClaimOwner);
 
-			Proofs::<T>::remove(&claim); // remove 不是必须的，因为后续insert，相同的key是覆盖
+			Proofs::<T>::remove(&bounded_vec); // remove 不是必须的，因为后续insert，相同的key是覆盖
 
-			Proofs::<T>::insert(&claim, (target.clone(), frame_system::Pallet::<T>::block_number()));
+			Proofs::<T>::insert(&bounded_vec, (target.clone(), frame_system::Pallet::<T>::block_number()));
 
 			// 改变值的方法，除了insert，还可以mutate
-			Proofs::<T>::mutate(&claim, |value|{
+			Proofs::<T>::mutate(&bounded_vec, |value|{
 				let mut v =value.as_mut().unwrap();
 				v.0 = target.clone();
 				v.1 = frame_system::Pallet::<T>::block_number();
