@@ -16,6 +16,14 @@ extern crate frame_system;
 /// 学习写一个 poe
 /// <https://substrate.dev/docs/en/knowledgebase/runtime/frame>
 
+/**
+展开宏:
+展开测试
+cargo expand --tests --lib > pallet-poe.test.expand.rs
+cargo expand -p pallet-poe > pallet-poe.expand.rs
+*/
+
+
 //把数据类型暴露出去
 pub use pallet::*;
 

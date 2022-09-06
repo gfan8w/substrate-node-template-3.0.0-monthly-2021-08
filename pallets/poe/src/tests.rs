@@ -3,6 +3,7 @@ use frame_support::{assert_ok, assert_noop, BoundedVec};
 use super::*;
 use frame_system as system;
 use core::convert::TryFrom; // BoundedVec::try_from
+use crate::frame_support::traits::Get;
 
 /*
 运行：
@@ -45,7 +46,7 @@ fn create_claim_ok_verify_event_claim_created() {
 		assert_ok!(PoeModule::create_claim(Origin::signed(alice),claim.clone()));
 
 		PoeModule::create_claim(Origin::signed(alice),claim.clone());
-		// //检查事件
+		// 检查事件
 		System::assert_last_event(mock::Event::PoeModule(crate::Event::ClaimCreated(
 			alice, claim.clone(),
 		)));
@@ -145,9 +146,12 @@ fn transfer_claim_to_b_failed_not_owner() {
 #[test]
 fn crete_claim_failed_when_too_large_claim() {
 	new_test_ext().execute_with(|| {
-		//let max_len: <Test as Config>::MaxClaimLength =  2u32.into();//mock::PoeModule::MaxClaimLength::get();
-		//let claim =vec![0,1,3,4,5,6,7,8,9,10,11];
-		let claim =vec![0; (7 + 1) as usize]; //自动比最大长度大1 , mock 里设置的是5.
+		let aa:u32 = <Test as Config>::MaxClaimLength::get();  // 获取实参
+		// let claim =vec![0,1,3,4,5,6,7,8,9,10,11]; // the most stupid, hard code, make it exceed the default length of defined.
+		// let max_len_deprecated = MaxClaimLengthDefinedInMock::get();  // deprecated, now we directly access the ConstU32<5>
+		 let max_len =  <<Test as Config>::MaxClaimLength as Get<u32>>::get();
+		// let max_len = MAX_CLAIM_LENGTH;	// another feasible approach, first define a const then use it everywhere
+		let claim =vec![0; (max_len + 1) as usize]; // 自动比最大长度大1 , mock 里设置的是5.
 		assert_noop!(
 		PoeModule::create_claim(Origin::signed(1),claim.clone()),
 				   Error::<Test>::ClaimTooLarge
